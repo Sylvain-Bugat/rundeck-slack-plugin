@@ -122,7 +122,7 @@ public class SlackPlugin implements NotificationPlugin {
 		}
 
 		final String projectUrl = jobContextMap.get("serverUrl") + "/" + jobContextMap.get("project");
-		final String groupUrl = projectUrl + "/jobs/" + jobContextMap.get("project") + "/" + jobContextMap.get("group");
+		final String groupUrl = projectUrl + "/jobs/" + jobContextMap.get("group");
 		final String title = "\"<" + executionData.get("href") + "|#" + executionData.get("id") + " - " + jobStatus + " - " + jobMap.get("name") + "> - <" + projectUrl + "|" + (String) executionData.get("project") + "> - <" + groupUrl + "|" + jobMap.get("group") + ">/<" + jobMap.get("href") + "|" + jobMap.get("name") + ">\"";
 
 		final Long startTime = (Long) executionData.get("dateStartedUnixtime");
