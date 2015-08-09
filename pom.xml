@@ -12,7 +12,7 @@
 	<packaging>jar</packaging>
 	<version>1.0-SNAPSHOT</version>
 	<name>Rundeck slack notification plugin</name>
-	<inceptionYear>2014</inceptionYear>
+	<inceptionYear>2015</inceptionYear>
 	<url>https://github.com/Sylvain-Bugat/rundeck-slack-plugin</url>
 
 	<scm>
@@ -49,17 +49,20 @@
 	<!-- Global properties -->
 	<properties>
 
-		<!-- Source Encoding -->
+		<!-- Source encoding -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<!-- Reporting Encoding -->
+		<!-- Reporting encoding -->
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
 		<!-- Maven version -->
 		<maven.version>3.0.5</maven.version>
 
-		<!-- JDK/JRE Version -->
+		<!-- JDK/JRE version -->
 		<maven.compiler.source>1.7</maven.compiler.source>
 		<maven.compiler.target>1.7</maven.compiler.target>
+
+		<!-- Rundeck version -->
+		<rundeck.version>2.5.2</rundeck.version>
 
 		<!-- Tests -->
 		<junit.version>4.12</junit.version>
@@ -101,7 +104,14 @@
 	<!-- Dependencies -->
 	<dependencies>
 
-		<!-- Test Dependencies (Junit, Mockito)  -->
+		<!-- Rundeck dependency -->
+		<dependency>
+			<groupId>org.rundeck</groupId>
+			<artifactId>rundeck-core</artifactId>
+			<version>${rundeck.version}</version>
+		</dependency>
+
+		<!-- Test Dependencies (Junit, Mockito) -->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -202,6 +212,16 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 				<version>${maven.pluginjar.version}</version>
+				<configuration>
+					<archive>
+						<manifestEntries>
+							<Rundeck-Plugin-Classnames>com.github.sbugat.rundeck.plugins.SlackPlugin</Rundeck-Plugin-Classnames>
+							<Rundeck-Plugin-Version>1.1</Rundeck-Plugin-Version>
+							<Rundeck-Plugin-Archive>true</Rundeck-Plugin-Archive>
+							<Rundeck-Plugin-File-Version>${project.version}</Rundeck-Plugin-File-Version>
+						</manifestEntries>
+					</archive>
+				</configuration>
 			</plugin>
 
 			<!-- Enforcer plugin configuration -->
