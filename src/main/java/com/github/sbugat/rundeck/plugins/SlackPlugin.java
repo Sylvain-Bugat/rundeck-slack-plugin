@@ -108,6 +108,8 @@ public class SlackPlugin implements NotificationPlugin {
 		@SuppressWarnings("unchecked")
 		final Map<String, Map<String, String>> contextMap = (Map<String, Map<String, String>>) executionData.get("context");
 		final Map<String, String> jobContextMap = contextMap.get("job");
+		final Map<String, String> optionContextMap = contextMap.get("option");
+		final Map<String, String> secureOptionContextMap = contextMap.get("secureOption");
 
 		final String jobStatus;
 		final String endStatus;
@@ -120,7 +122,7 @@ public class SlackPlugin implements NotificationPlugin {
 		}
 
 		final String projectUrl = jobContextMap.get("serverUrl") + "/" + jobContextMap.get("project");
-		final String groupUrl = jobContextMap.get("serverUrl") + "/jobs/" + jobContextMap.get("project") + "/" + jobContextMap.get("group");
+		final String groupUrl = projectUrl + "/jobs/" + jobContextMap.get("project") + "/" + jobContextMap.get("group");
 		final String title = "\"<" + executionData.get("href") + "|#" + executionData.get("id") + " - " + jobStatus + " - " + jobMap.get("name") + "> - <" + projectUrl + "|" + (String) executionData.get("project") + "> - <" + groupUrl + "|" + jobMap.get("group") + ">/<" + jobMap.get("href") + "|" + jobMap.get("name") + ">\"";
 
 		final Long startTime = (Long) executionData.get("dateStartedUnixtime");
@@ -136,26 +138,21 @@ public class SlackPlugin implements NotificationPlugin {
 		stringBuilder.append("			\"text\": \"" + duration + "\nOptions:\",");
 		stringBuilder.append("			\"color\": \"" + statusColor + "\",");
 		stringBuilder.append("			\"fields\":[");
-		stringBuilder.append("				{");
-		stringBuilder.append("					\"title\":\"Job Name\",");
-		stringBuilder.append("					\"value\":\"test1\",");
-		stringBuilder.append("					\"short\":true");
-		stringBuilder.append("				},");
-		stringBuilder.append("				{");
-		stringBuilder.append("					\"title\":\"Job Name2\",");
-		stringBuilder.append("					\"value\":\"test2\",");
-		stringBuilder.append("					\"short\":true");
-		stringBuilder.append("				},");
-		stringBuilder.append("				{");
-		stringBuilder.append("					\"title\":\"Job Name3\",");
-		stringBuilder.append("					\"value\":\"test3\",");
-		stringBuilder.append("					\"short\":true");
-		stringBuilder.append("				},");
-		stringBuilder.append("				{");
-		stringBuilder.append("					\"title\":\"Job Name4\",");
-		stringBuilder.append("					\"value\":\"test4\",");
-		stringBuilder.append("					\"short\":false");
-		stringBuilder.append("				}");
+
+		boolean firstOption = true;
+		for (final Map.Entry<String, String> mapEntry : optionContextMap.entrySet()) {
+
+			if (!firstOption) {
+				stringBuilder.append(',');
+			}
+			stringBuilder.append("				{");
+			stringBuilder.append("					\"title\":\"" + mapEntry.getKey() + "\",");
+			stringBuilder.append("					\"value\":\"" + mapEntry.getValue() + "\",");
+			stringBuilder.append("					\"short\":true");
+			stringBuilder.append("				}");
+
+			firstOption = false;
+		}
 		stringBuilder.append("			]");
 		stringBuilder.append("		},");
 		stringBuilder.append("		{");
