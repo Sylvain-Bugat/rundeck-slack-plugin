@@ -97,7 +97,7 @@ public class SlackPlugin implements NotificationPlugin {
 	private String getMessage(final String trigger, @SuppressWarnings("rawtypes") final Map executionData, @SuppressWarnings("rawtypes") final Map config) {
 
 		final String statusColor;
-		if ("success" == trigger) {
+		if ("success" == trigger || "start" == trigger) {
 			statusColor = SLACK_SUCCESS_COLOR;
 		} else {
 			statusColor = SLACK_FAILED_COLOR;
@@ -149,7 +149,13 @@ public class SlackPlugin implements NotificationPlugin {
 		final Long startTime = (Long) executionData.get("dateStartedUnixtime");
 		final Long endTime = (Long) executionData.get("dateEndedUnixtime");
 		final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.getDefault());
-		final String duration = "Launched by " + executionData.get("user") + " at " + dateFormat.format(new Date(startTime)) + ", " + endStatus + " at " + dateFormat.format(new Date(endTime)) + " (duration: " + (endTime - startTime) / 1000 + "s)";
+		final String duration;
+		if( "start" == trigger ) {
+			duration = "Launched by " + executionData.get("user") + " at " + dateFormat.format(new Date(startTime));
+		}
+		else {
+			duration = "Launched by " + executionData.get("user") + " at " + dateFormat.format(new Date(startTime)) + ", " + endStatus + " at " + dateFormat.format(new Date(endTime)) + " (duration: " + (endTime - startTime) / 1000 + "s)";
+		}
 
 		final StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("{");
