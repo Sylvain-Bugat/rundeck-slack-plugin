@@ -74,7 +74,7 @@ public class SlackPlugin implements NotificationPlugin {
 			connection.setDoOutput(true);
 
 			final DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
-			wr.writeBytes("payload=" + URLEncoder.encode(getMessage(trigger, executionData, config), StandardCharsets.UTF_8.name()));
+			wr.writeBytes("payload=" + URLEncoder.encode("{" + getMessageOptions() + getMessage(trigger, executionData, config) + "}", StandardCharsets.UTF_8.name()));
 			wr.close();
 
 			System.out.println(connection.getResponseCode());
@@ -92,6 +92,25 @@ public class SlackPlugin implements NotificationPlugin {
 
 	public void setSlackIncomingWebHookUrl(final String slackIncomingWebHookUrl) {
 		this.slackIncomingWebHookUrl = slackIncomingWebHookUrl;
+	}
+
+	private String getMessageOptions() {
+
+		final StringBuilder stringBuilder = new StringBuilder();
+		if (null != slackOverrideDefaultWebHookChannel) {
+			stringBuilder.append("\"channel\":");
+			stringBuilder.append("\"" + slackOverrideDefaultWebHookChannel + "\", ");
+		}
+		if (null != slackOverrideDefaultWebHookName) {
+			stringBuilder.append("\"username\":");
+			stringBuilder.append("\"" + slackOverrideDefaultWebHookName + "\", ");
+		}
+		if (null != slackOverrideDefaultWebHookEmoji) {
+			stringBuilder.append("\"icon_emoji\":");
+			stringBuilder.append("\"" + slackOverrideDefaultWebHookEmoji + "\", ");
+		}
+
+		return stringBuilder.toString();
 	}
 
 	private String getMessage(final String trigger, @SuppressWarnings("rawtypes") final Map executionData, @SuppressWarnings("rawtypes") final Map config) {
@@ -154,7 +173,7 @@ public class SlackPlugin implements NotificationPlugin {
 		}
 
 		final StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("{");
+		// stringBuilder.append("{");
 		stringBuilder.append("	\"attachments\":[");
 		stringBuilder.append("		{");
 		stringBuilder.append("			\"title\": " + title + ",");
@@ -219,7 +238,7 @@ public class SlackPlugin implements NotificationPlugin {
 		}
 
 		stringBuilder.append("	]");
-		stringBuilder.append("}");
+		// stringBuilder.append("}");
 
 		return stringBuilder.toString();
 	}
