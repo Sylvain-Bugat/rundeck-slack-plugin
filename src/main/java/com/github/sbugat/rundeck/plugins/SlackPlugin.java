@@ -147,7 +147,14 @@ public class SlackPlugin implements NotificationPlugin {
 			}
 			stringBuilder.append("				{");
 			stringBuilder.append("					\"title\":\"" + mapEntry.getKey() + "\",");
-			stringBuilder.append("					\"value\":\"" + mapEntry.getValue() + "\",");
+			final String value;
+			if( null == secureOptionContextMap.get(mapEntry.getKey())) {
+				value = mapEntry.getValue();
+			}
+			else {
+				value = "***********";
+			}
+			stringBuilder.append("					\"value\":\"" + value + "\",");
 			stringBuilder.append("					\"short\":true");
 			stringBuilder.append("				}");
 
