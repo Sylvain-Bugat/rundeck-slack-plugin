@@ -123,7 +123,12 @@ public class SlackPlugin implements NotificationPlugin {
 		if ("aborted" == executionData.get("status") && null != executionData.get("abortedby")) {
 			jobStatus = ((String) executionData.get("status")).toUpperCase() + " by " + executionData.get("abortedby");
 			endStatus = executionData.get("status") + " by " + executionData.get("abortedby");
-		} else {
+		}
+		else if ("timedout" == executionData.get("status")) {
+			jobStatus = ((String) executionData.get("status")).toUpperCase();
+			endStatus = "timed-out";
+		}
+		else {
 			jobStatus = ((String) executionData.get("status")).toUpperCase();
 			endStatus = "ended";
 		}
