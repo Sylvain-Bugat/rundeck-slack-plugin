@@ -114,6 +114,9 @@ public class SlackPlugin implements NotificationPlugin {
 
 		@SuppressWarnings("unchecked")
 		final List<String> failedNodeList = (List<String>) executionData.get("failedNodeList");
+		@SuppressWarnings("unchecked")
+		final Map<String, Integer> nodeStatus = (Map<String, Integer>) executionData.get("nodestatus");
+		
 		
 		final String jobStatus;
 		final String endStatus;
@@ -184,7 +187,7 @@ public class SlackPlugin implements NotificationPlugin {
 		stringBuilder.append("			]");
 		stringBuilder.append("		}");
 		
-		if( ! failedNodeList.isEmpty() ) {
+		if( ! failedNodeList.isEmpty() && nodeStatus.get("total") > 1 ) {
 			stringBuilder.append(",");
 			stringBuilder.append("		{");
 			stringBuilder.append("			\"fallback\": \"Failed nodes\",");
