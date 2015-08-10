@@ -118,12 +118,21 @@ public class SlackPlugin implements NotificationPlugin {
 			endStatus = executionData.get("status") + " by " + executionData.get("abortedby");
 		} else {
 			jobStatus = ((String) executionData.get("status")).toUpperCase();
-			endStatus = "ended ";
+			endStatus = "ended";
 		}
 
 		final String projectUrl = jobContextMap.get("serverUrl") + "/" + jobContextMap.get("project");
-		final String groupUrl = projectUrl + "/jobs/" + jobContextMap.get("group");
-		final String title = "\"<" + executionData.get("href") + "|#" + executionData.get("id") + " - " + jobStatus + " - " + jobMap.get("name") + "> - <" + projectUrl + "|" + (String) executionData.get("project") + "> - <" + groupUrl + "|" + jobMap.get("group") + ">/<" + jobMap.get("href") + "|" + jobMap.get("name") + ">\"";
+		
+		final StringBuilder formatedGroups = new StringBuilder();
+		if( null != jobContextMap.get("group")) {
+			String rootGroups = "";
+			for( final String group : jobContextMap.get("group").split("/") ) {
+				formatedGroups.append("<" + projectUrl + "/jobs/"+ rootGroups + group + "|" + group + ">/");
+				rootGroups =  rootGroups + group + "/";
+			}
+		}
+		
+		final String title = "\"<" + executionData.get("href") + "|#" + executionData.get("id") + " - " + jobStatus + " - " + jobMap.get("name") + "> - <" + projectUrl + "|" + (String) executionData.get("project") + "> - " + formatedGroups + "<" + jobMap.get("href") + "|" + jobMap.get("name") + ">\"";
 
 		final Long startTime = (Long) executionData.get("dateStartedUnixtime");
 		final Long endTime = (Long) executionData.get("dateEndedUnixtime");
