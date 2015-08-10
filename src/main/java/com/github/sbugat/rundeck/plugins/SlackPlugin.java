@@ -8,6 +8,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -111,6 +112,9 @@ public class SlackPlugin implements NotificationPlugin {
 		final Map<String, String> optionContextMap = contextMap.get("option");
 		final Map<String, String> secureOptionContextMap = contextMap.get("secureOption");
 
+		@SuppressWarnings("unchecked")
+		final List<String> failedNodeList = (List<String>) executionData.get("failedNodeList");
+		
 		final String jobStatus;
 		final String endStatus;
 		if ("aborted" == executionData.get("status") && null != executionData.get("abortedby")) {
@@ -178,29 +182,34 @@ public class SlackPlugin implements NotificationPlugin {
 			firstOption = false;
 		}
 		stringBuilder.append("			]");
-		stringBuilder.append("		},");
-		stringBuilder.append("		{");
-		stringBuilder.append("			\"fallback\": \"Failed node\",");
-		stringBuilder.append("			\"text\": \"Failed node\",");
-		stringBuilder.append("			\"color\": \"" + statusColor + "\",");
-		stringBuilder.append("			\"fields\":[");
-		stringBuilder.append("				{");
-		stringBuilder.append("					\"title\":\"node1\",");
-		stringBuilder.append("					\"value\":\"node1\",");
-		stringBuilder.append("					\"short\":true");
-		stringBuilder.append("				},");
-		stringBuilder.append("				{");
-		stringBuilder.append("					\"title\":\"node2\",");
-		stringBuilder.append("					\"value\":\"node1\",");
-		stringBuilder.append("					\"short\":true");
-		stringBuilder.append("				},");
-		stringBuilder.append("				{");
-		stringBuilder.append("					\"title\":\"node3\",");
-		stringBuilder.append("					\"value\":\"node3\",");
-		stringBuilder.append("					\"short\":true");
-		stringBuilder.append("				}");
-		stringBuilder.append("			]");
 		stringBuilder.append("		}");
+		
+		if( ! failedNodeList.isEmpty() ) {
+			stringBuilder.append(",");
+			stringBuilder.append("		{");
+			stringBuilder.append("			\"fallback\": \"Failed nodes\",");
+			stringBuilder.append("			\"text\": \"Failed nodes:\",");
+			stringBuilder.append("			\"color\": \"" + statusColor + "\",");
+			stringBuilder.append("			\"fields\":[");
+			
+			boolean firstNode = true;
+			for( final String failedNode : failedNodeList ) {
+				
+				if( ! firstNode ) {
+					stringBuilder.append(',');
+				}
+				stringBuilder.append("				{");
+				stringBuilder.append("					\"title\":\"" + failedNode + "\",");
+				stringBuilder.append("					\"short\":true");
+				stringBuilder.append("				}");
+				
+				firstNode = false;
+			}
+			
+			stringBuilder.append("			]");
+			stringBuilder.append("		}");
+		}
+		
 		stringBuilder.append("	]");
 		stringBuilder.append("}");
 
