@@ -116,44 +116,40 @@ public class SlackPlugin implements NotificationPlugin {
 		final List<String> failedNodeList = (List<String>) executionData.get("failedNodeList");
 		@SuppressWarnings("unchecked")
 		final Map<String, Integer> nodeStatus = (Map<String, Integer>) executionData.get("nodestatus");
-		
-		
+
 		final String jobStatus;
 		final String endStatus;
 		if ("aborted" == executionData.get("status") && null != executionData.get("abortedby")) {
 			jobStatus = ((String) executionData.get("status")).toUpperCase() + " by " + executionData.get("abortedby");
 			endStatus = executionData.get("status") + " by " + executionData.get("abortedby");
-		}
-		else if ("timedout" == executionData.get("status")) {
+		} else if ("timedout" == executionData.get("status")) {
 			jobStatus = ((String) executionData.get("status")).toUpperCase();
 			endStatus = "timed-out";
-		}
-		else {
+		} else {
 			jobStatus = ((String) executionData.get("status")).toUpperCase();
 			endStatus = "ended";
 		}
 
 		final String projectUrl = jobContextMap.get("serverUrl") + "/" + jobContextMap.get("project");
-		
+
 		final StringBuilder formatedGroups = new StringBuilder();
-		if( null != jobContextMap.get("group")) {
+		if (null != jobContextMap.get("group")) {
 			String rootGroups = "";
-			for( final String group : jobContextMap.get("group").split("/") ) {
-				formatedGroups.append("<" + projectUrl + "/jobs/"+ rootGroups + group + "|" + group + ">/");
-				rootGroups =  rootGroups + group + "/";
+			for (final String group : jobContextMap.get("group").split("/")) {
+				formatedGroups.append("<" + projectUrl + "/jobs/" + rootGroups + group + "|" + group + ">/");
+				rootGroups = rootGroups + group + "/";
 			}
 		}
-		
+
 		final String title = "\"<" + executionData.get("href") + "|#" + executionData.get("id") + " - " + jobStatus + " - " + jobMap.get("name") + "> - <" + projectUrl + "|" + (String) executionData.get("project") + "> - " + formatedGroups + "<" + jobMap.get("href") + "|" + jobMap.get("name") + ">\"";
 
 		final Long startTime = (Long) executionData.get("dateStartedUnixtime");
 		final Long endTime = (Long) executionData.get("dateEndedUnixtime");
 		final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.getDefault());
 		final String duration;
-		if( "start" == trigger ) {
+		if ("start" == trigger) {
 			duration = "Launched by " + executionData.get("user") + " at " + dateFormat.format(new Date(startTime));
-		}
-		else {
+		} else {
 			duration = "Launched by " + executionData.get("user") + " at " + dateFormat.format(new Date(startTime)) + ", " + endStatus + " at " + dateFormat.format(new Date(endTime)) + " (duration: " + (endTime - startTime) / 1000 + "s)";
 		}
 
@@ -162,12 +158,11 @@ public class SlackPlugin implements NotificationPlugin {
 		stringBuilder.append("	\"attachments\":[");
 		stringBuilder.append("		{");
 		stringBuilder.append("			\"title\": " + title + ",");
-		
+
 		final String option;
-		if( optionContextMap.isEmpty() ) {
+		if (optionContextMap.isEmpty()) {
 			option = "";
-		}
-		else {
+		} else {
 			option = "\nJob options:";
 		}
 		stringBuilder.append("			\"text\": \"" + duration + option + "\",");
@@ -183,11 +178,10 @@ public class SlackPlugin implements NotificationPlugin {
 			stringBuilder.append("				{");
 			stringBuilder.append("					\"title\":\"" + mapEntry.getKey() + "\",");
 			final String value;
-			if( null == secureOptionContextMap.get(mapEntry.getKey())) {
-				value = mapEntry.getValue();
-			}
-			else {
+			if (null != secureOptionContextMap && null != secureOptionContextMap.get(mapEntry.getKey())) {
 				value = "***********";
+			} else {
+				value = mapEntry.getValue();
 			}
 			stringBuilder.append("					\"value\":\"" + value + "\",");
 			stringBuilder.append("					\"short\":true");
@@ -197,33 +191,33 @@ public class SlackPlugin implements NotificationPlugin {
 		}
 		stringBuilder.append("			]");
 		stringBuilder.append("		}");
-		
-		if( ! failedNodeList.isEmpty() && nodeStatus.get("total") > 1 ) {
+
+		if (null != failedNodeList && !failedNodeList.isEmpty() && nodeStatus.get("total") > 1) {
 			stringBuilder.append(",");
 			stringBuilder.append("		{");
 			stringBuilder.append("			\"fallback\": \"Failed nodes\",");
 			stringBuilder.append("			\"text\": \"Failed nodes:\",");
 			stringBuilder.append("			\"color\": \"" + statusColor + "\",");
 			stringBuilder.append("			\"fields\":[");
-			
+
 			boolean firstNode = true;
-			for( final String failedNode : failedNodeList ) {
-				
-				if( ! firstNode ) {
+			for (final String failedNode : failedNodeList) {
+
+				if (!firstNode) {
 					stringBuilder.append(',');
 				}
 				stringBuilder.append("				{");
 				stringBuilder.append("					\"title\":\"" + failedNode + "\",");
 				stringBuilder.append("					\"short\":true");
 				stringBuilder.append("				}");
-				
+
 				firstNode = false;
 			}
-			
+
 			stringBuilder.append("			]");
 			stringBuilder.append("		}");
 		}
-		
+
 		stringBuilder.append("	]");
 		stringBuilder.append("}");
 
