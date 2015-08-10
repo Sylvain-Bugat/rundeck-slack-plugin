@@ -115,6 +115,7 @@ public class SlackPlugin implements NotificationPlugin {
 
 	private String getMessage(final String trigger, @SuppressWarnings("rawtypes") final Map executionData, @SuppressWarnings("rawtypes") final Map config) {
 
+		// Success and starting execution are good(green)
 		final String statusColor;
 		if ("success" == trigger || "start" == trigger) {
 			statusColor = SLACK_SUCCESS_COLOR;
@@ -125,6 +126,7 @@ public class SlackPlugin implements NotificationPlugin {
 		@SuppressWarnings("unchecked")
 		final Map<String, String> jobMap = (Map<String, String>) executionData.get("job");
 
+		// Context map containing additional information
 		@SuppressWarnings("unchecked")
 		final Map<String, Map<String, String>> contextMap = (Map<String, Map<String, String>>) executionData.get("context");
 		final Map<String, String> jobContextMap = contextMap.get("job");
@@ -172,12 +174,7 @@ public class SlackPlugin implements NotificationPlugin {
 			duration = "Launched by " + executionData.get("user") + " at " + dateFormat.format(new Date(startTime)) + ", " + endStatus + " at " + dateFormat.format(new Date(endTime)) + " (duration: " + (endTime - startTime) / 1000 + "s)";
 		}
 
-		final StringBuilder stringBuilder = new StringBuilder();
-		// stringBuilder.append("{");
-		stringBuilder.append("	\"attachments\":[");
-		stringBuilder.append("		{");
-		stringBuilder.append("			\"title\": " + title + ",");
-
+		// Download link if the job fails
 		final String download;
 		if ("success" != trigger && "start" != trigger) {
 			download = "\n<" + projectUrl + "/execution/downloadOutput/" + executionData.get("id") + "|Download log ouput>";
@@ -185,6 +182,7 @@ public class SlackPlugin implements NotificationPlugin {
 			download = "";
 		}
 
+		// Option header
 		final String option;
 		if (optionContextMap.isEmpty()) {
 			option = "";
@@ -194,10 +192,16 @@ public class SlackPlugin implements NotificationPlugin {
 			option = ", job options:";
 		}
 
+		// Attachment begin and title
+		final StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder.append("	\"attachments\":[");
+		stringBuilder.append("		{");
+		stringBuilder.append("			\"title\": " + title + ",");
 		stringBuilder.append("			\"text\": \"" + duration + download + option + "\",");
 		stringBuilder.append("			\"color\": \"" + statusColor + "\",");
 		stringBuilder.append("			\"fields\":[");
 
+		// Options part, secure options values are not displayed
 		boolean firstOption = true;
 		for (final Map.Entry<String, String> mapEntry : optionContextMap.entrySet()) {
 
@@ -221,6 +225,7 @@ public class SlackPlugin implements NotificationPlugin {
 		stringBuilder.append("			]");
 		stringBuilder.append("		}");
 
+		// Failed node part if a node is failed and if it's not the only one node executed
 		if (null != failedNodeList && !failedNodeList.isEmpty() && nodeStatus.get("total") > 1) {
 			stringBuilder.append(",");
 			stringBuilder.append("		{");
@@ -248,7 +253,6 @@ public class SlackPlugin implements NotificationPlugin {
 		}
 
 		stringBuilder.append("	]");
-		// stringBuilder.append("}");
 
 		return stringBuilder.toString();
 	}
