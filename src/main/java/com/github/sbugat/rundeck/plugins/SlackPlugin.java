@@ -135,7 +135,15 @@ public class SlackPlugin implements NotificationPlugin {
 		stringBuilder.append("	\"attachments\":[");
 		stringBuilder.append("		{");
 		stringBuilder.append("			\"title\": " + title + ",");
-		stringBuilder.append("			\"text\": \"" + duration + "\nOptions:\",");
+		
+		final String option;
+		if( optionContextMap.isEmpty() ) {
+			option = "";
+		}
+		else {
+			option = "\nJob options:";
+		}
+		stringBuilder.append("			\"text\": \"" + duration + option + "\",");
 		stringBuilder.append("			\"color\": \"" + statusColor + "\",");
 		stringBuilder.append("			\"fields\":[");
 
