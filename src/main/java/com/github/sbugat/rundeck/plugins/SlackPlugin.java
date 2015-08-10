@@ -178,13 +178,23 @@ public class SlackPlugin implements NotificationPlugin {
 		stringBuilder.append("		{");
 		stringBuilder.append("			\"title\": " + title + ",");
 
+		final String download;
+		if ("success" != trigger && "start" != trigger) {
+			download = "\n<" + projectUrl + "/execution/downloadOutput/" + executionData.get("id") + "|Download log ouput>";
+		} else {
+			download = "";
+		}
+
 		final String option;
 		if (optionContextMap.isEmpty()) {
 			option = "";
-		} else {
+		} else if (download.isEmpty()) {
 			option = "\nJob options:";
+		} else {
+			option = ", job options:";
 		}
-		stringBuilder.append("			\"text\": \"" + duration + option + "\",");
+
+		stringBuilder.append("			\"text\": \"" + duration + download + option + "\",");
 		stringBuilder.append("			\"color\": \"" + statusColor + "\",");
 		stringBuilder.append("			\"fields\":[");
 
