@@ -46,6 +46,8 @@ public class SlackPlugin implements NotificationPlugin {
 	@Override
 	public boolean postNotification(final String trigger, @SuppressWarnings("rawtypes") final Map executionData, @SuppressWarnings("rawtypes") final Map config) {
 
+		//TODO to delete
+		//Debug display
 		System.out.println(trigger);
 		System.out.println(slackIncomingWebHookUrl);
 		for (final Object entry : executionData.keySet()) {
@@ -65,6 +67,8 @@ public class SlackPlugin implements NotificationPlugin {
 		}
 
 		try {
+			
+			//Prepare the connection to Slack
 			final HttpURLConnection connection = (HttpURLConnection) new URL(slackIncomingWebHookUrl).openConnection();
 
 			connection.setRequestMethod("POST");
@@ -73,10 +77,12 @@ public class SlackPlugin implements NotificationPlugin {
 			connection.setDoInput(true);
 			connection.setDoOutput(true);
 
+			//Send the WebHook message
 			final DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
 			wr.writeBytes("payload=" + URLEncoder.encode("{" + getMessageOptions() + getMessage(trigger, executionData, config) + "}", StandardCharsets.UTF_8.name()));
 			wr.close();
 
+			//Get the HTTP response code
 			System.out.println(connection.getResponseCode());
 		} catch (final IOException e) {
 			e.printStackTrace();
@@ -94,6 +100,11 @@ public class SlackPlugin implements NotificationPlugin {
 		this.slackIncomingWebHookUrl = slackIncomingWebHookUrl;
 	}
 
+	/**
+	 * Return a message with overrided options.
+	 * 
+	 * @return optional message with channel, username and emoji to use
+	 */
 	private String getMessageOptions() {
 
 		final StringBuilder stringBuilder = new StringBuilder();
@@ -113,6 +124,15 @@ public class SlackPlugin implements NotificationPlugin {
 		return stringBuilder.toString();
 	}
 
+	/**
+	 * Return a Slack message with the job execution data.
+	 * 
+	 * @param trigger execution status
+	 * @param executionData current execution state
+	 * @param config plugin configuration
+	 * 
+	 * @return complete job execution message to send to Slack
+	 */
 	private String getMessage(final String trigger, @SuppressWarnings("rawtypes") final Map executionData, @SuppressWarnings("rawtypes") final Map config) {
 
 		// Success and starting execution are good(green)
@@ -126,18 +146,6 @@ public class SlackPlugin implements NotificationPlugin {
 		@SuppressWarnings("unchecked")
 		final Map<String, String> jobMap = (Map<String, String>) executionData.get("job");
 
-		// Context map containing additional information
-		@SuppressWarnings("unchecked")
-		final Map<String, Map<String, String>> contextMap = (Map<String, Map<String, String>>) executionData.get("context");
-		final Map<String, String> jobContextMap = contextMap.get("job");
-		final Map<String, String> optionContextMap = contextMap.get("option");
-		final Map<String, String> secureOptionContextMap = contextMap.get("secureOption");
-
-		@SuppressWarnings("unchecked")
-		final List<String> failedNodeList = (List<String>) executionData.get("failedNodeList");
-		@SuppressWarnings("unchecked")
-		final Map<String, Integer> nodeStatus = (Map<String, Integer>) executionData.get("nodestatus");
-
 		final String jobStatus;
 		final String endStatus;
 		if ("aborted" == executionData.get("status") && null != executionData.get("abortedby")) {
@@ -150,6 +158,12 @@ public class SlackPlugin implements NotificationPlugin {
 			jobStatus = ((String) executionData.get("status")).toUpperCase();
 			endStatus = "ended";
 		}
+		
+		
+		// Context map containing additional information
+		@SuppressWarnings("unchecked")
+		final Map<String, Map<String, String>> contextMap = (Map<String, Map<String, String>>) executionData.get("context");
+		final Map<String, String> jobContextMap = contextMap.get("job");
 
 		final String projectUrl = jobContextMap.get("serverUrl") + "/" + jobContextMap.get("project");
 
@@ -182,6 +196,9 @@ public class SlackPlugin implements NotificationPlugin {
 			download = "";
 		}
 
+		final Map<String, String> optionContextMap = contextMap.get("option");
+		final Map<String, String> secureOptionContextMap = contextMap.get("secureOption");
+		
 		// Option header
 		final String option;
 		if (optionContextMap.isEmpty()) {
@@ -225,15 +242,22 @@ public class SlackPlugin implements NotificationPlugin {
 		stringBuilder.append("			]");
 		stringBuilder.append("		}");
 
+		
+		@SuppressWarnings("unchecked")
+		final List<String> failedNodeList = (List<String>) executionData.get("failedNodeList");
+		@SuppressWarnings("unchecked")
+		final Map<String, Integer> nodeStatus = (Map<String, Integer>) executionData.get("nodestatus");
+		
 		// Failed node part if a node is failed and if it's not the only one node executed
 		if (null != failedNodeList && !failedNodeList.isEmpty() && nodeStatus.get("total") > 1) {
 			stringBuilder.append(",");
 			stringBuilder.append("		{");
-			stringBuilder.append("			\"fallback\": \"Failed nodes\",");
+			stringBuilder.append("			\"fallback\": \"Failed nodes list\",");
 			stringBuilder.append("			\"text\": \"Failed nodes:\",");
 			stringBuilder.append("			\"color\": \"" + statusColor + "\",");
 			stringBuilder.append("			\"fields\":[");
 
+			//Format a list with all failed nodes
 			boolean firstNode = true;
 			for (final String failedNode : failedNodeList) {
 
