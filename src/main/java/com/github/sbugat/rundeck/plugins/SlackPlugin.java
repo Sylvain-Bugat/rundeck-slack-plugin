@@ -2,6 +2,7 @@ package com.github.sbugat.rundeck.plugins;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -78,7 +79,8 @@ public class SlackPlugin implements NotificationPlugin {
 			connection.setDoOutput(true);
 
 			//Send the WebHook message
-			final DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
+			final OutputStream os = connection.getOutputStream();
+			final DataOutputStream wr = new DataOutputStream(os);
 			wr.writeBytes("payload=" + URLEncoder.encode("{" + getMessageOptions() + getMessage(trigger, executionData, config) + "}", StandardCharsets.UTF_8.name()));
 			wr.close();
 
@@ -91,6 +93,8 @@ public class SlackPlugin implements NotificationPlugin {
 
 		return true;
 	}
+	
+	
 
 	public String getSlackIncomingWebHookUrl() {
 		return slackIncomingWebHookUrl;
@@ -201,7 +205,7 @@ public class SlackPlugin implements NotificationPlugin {
 		
 		// Option header
 		final String option;
-		if (optionContextMap.isEmpty()) {
+		if (null == optionContextMap || optionContextMap.isEmpty()) {
 			option = "";
 		} else if (download.isEmpty()) {
 			option = "\nJob options:";
@@ -219,25 +223,27 @@ public class SlackPlugin implements NotificationPlugin {
 		stringBuilder.append("			\"fields\":[");
 
 		// Options part, secure options values are not displayed
-		boolean firstOption = true;
-		for (final Map.Entry<String, String> mapEntry : optionContextMap.entrySet()) {
+		if (null != optionContextMap ) {
+			boolean firstOption = true;
+			for (final Map.Entry<String, String> mapEntry : optionContextMap.entrySet()) {
 
-			if (!firstOption) {
-				stringBuilder.append(',');
-			}
-			stringBuilder.append("				{");
-			stringBuilder.append("					\"title\":\"" + mapEntry.getKey() + "\",");
-			final String value;
-			if (null != secureOptionContextMap && null != secureOptionContextMap.get(mapEntry.getKey())) {
-				value = "***********";
-			} else {
-				value = mapEntry.getValue();
-			}
-			stringBuilder.append("					\"value\":\"" + value + "\",");
-			stringBuilder.append("					\"short\":true");
-			stringBuilder.append("				}");
+				if (!firstOption) {
+					stringBuilder.append(',');
+				}
+				stringBuilder.append("				{");
+				stringBuilder.append("					\"title\":\"" + mapEntry.getKey() + "\",");
+				final String value;
+				if (null != secureOptionContextMap && null != secureOptionContextMap.get(mapEntry.getKey())) {
+					value = "***********";
+				} else {
+					value = mapEntry.getValue();
+				}
+				stringBuilder.append("					\"value\":\"" + value + "\",");
+				stringBuilder.append("					\"short\":true");
+				stringBuilder.append("				}");
 
-			firstOption = false;
+				firstOption = false;
+			}
 		}
 		stringBuilder.append("			]");
 		stringBuilder.append("		}");
