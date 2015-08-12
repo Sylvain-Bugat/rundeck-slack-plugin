@@ -4,6 +4,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -44,6 +45,10 @@ public class SlackPlugin implements NotificationPlugin {
 	@PluginProperty(title = "WebHook emoji", description = "Override default WebHook icon (emoji)")
 	private String slackOverrideDefaultWebHookEmoji;
 
+	public void ulrTest() throws MalformedURLException, IOException {
+		new URL(null).openConnection();
+	}
+	
 	@Override
 	public boolean postNotification(final String trigger, @SuppressWarnings("rawtypes") final Map executionData, @SuppressWarnings("rawtypes") final Map config) {
 
@@ -201,7 +206,6 @@ public class SlackPlugin implements NotificationPlugin {
 		}
 
 		final Map<String, String> optionContextMap = contextMap.get("option");
-		final Map<String, String> secureOptionContextMap = contextMap.get("secureOption");
 		
 		// Option header
 		final String option;
@@ -215,39 +219,72 @@ public class SlackPlugin implements NotificationPlugin {
 
 		// Attachment begin and title
 		final StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("	\"attachments\":[");
-		stringBuilder.append("		{");
-		stringBuilder.append("			\"title\": " + title + ",");
-		stringBuilder.append("			\"text\": \"" + duration + download + option + "\",");
-		stringBuilder.append("			\"color\": \"" + statusColor + "\",");
-		stringBuilder.append("			\"fields\":[");
+		stringBuilder.append("\"attachments\":[");
+		stringBuilder.append("	{");
+		stringBuilder.append("		\"title\": " + title + ",");
+		stringBuilder.append("		\"text\": \"" + duration + download + option + "\",");
+		stringBuilder.append("		\"color\": \"" + statusColor + "\",");
+		
+		//Job options section
+		stringBuilder.append(getOptionsMessage(optionContextMap, contextMap.get("secureOption")));
+
+		stringBuilder.append("	}");
+
+		//Failed nodes section
+		stringBuilder.append(getFailedNodesMessage( executionData, statusColor ) );
+
+		stringBuilder.append("]");
+
+		return stringBuilder.toString();
+	}
+	
+	private CharSequence getOptionsMessage( final Map<String, String> optionContextMap, final Map<String, String> secureOptionContextMap ) {
+		
+		final StringBuilder messageBuilder = new StringBuilder();
 
 		// Options part, secure options values are not displayed
-		if (null != optionContextMap ) {
+		if (null != optionContextMap &&  ! optionContextMap.isEmpty() ) {
+			
+			messageBuilder.append("\"fields\":[");
 			boolean firstOption = true;
 			for (final Map.Entry<String, String> mapEntry : optionContextMap.entrySet()) {
 
 				if (!firstOption) {
-					stringBuilder.append(',');
+					messageBuilder.append(',');
 				}
-				stringBuilder.append("				{");
-				stringBuilder.append("					\"title\":\"" + mapEntry.getKey() + "\",");
-				final String value;
+				messageBuilder.append("{");
+				messageBuilder.append("\"title\":\"" + mapEntry.getKey() + "\",");
+				messageBuilder.append("\"value\":\"");
+
 				if (null != secureOptionContextMap && null != secureOptionContextMap.get(mapEntry.getKey())) {
-					value = "***********";
+					messageBuilder.append( "***********");
 				} else {
-					value = mapEntry.getValue();
+					messageBuilder.append( mapEntry.getValue());
 				}
-				stringBuilder.append("					\"value\":\"" + value + "\",");
-				stringBuilder.append("					\"short\":true");
-				stringBuilder.append("				}");
+				
+				messageBuilder.append("\",");
+				messageBuilder.append("\"short\":true");
+				messageBuilder.append("}");
 
 				firstOption = false;
 			}
+			
+			messageBuilder.append("]");
 		}
-		stringBuilder.append("			]");
-		stringBuilder.append("		}");
-
+		
+		return messageBuilder;
+	}
+	
+	/**
+	 * Construct the failed nodes section.
+	 * 
+	 * @param executionData current execution state
+	 * @param statusColor status color to display
+	 * @return char sequence containing the formated section
+	 */
+	private CharSequence getFailedNodesMessage( @SuppressWarnings("rawtypes") final Map executionData, final String statusColor ) {
+		
+		final StringBuilder messageBuilder = new StringBuilder();
 		
 		@SuppressWarnings("unchecked")
 		final List<String> failedNodeList = (List<String>) executionData.get("failedNodeList");
@@ -256,34 +293,38 @@ public class SlackPlugin implements NotificationPlugin {
 		
 		// Failed node part if a node is failed and if it's not the only one node executed
 		if (null != failedNodeList && !failedNodeList.isEmpty() && nodeStatus.get("total") > 1) {
-			stringBuilder.append(",");
-			stringBuilder.append("		{");
-			stringBuilder.append("			\"fallback\": \"Failed nodes list\",");
-			stringBuilder.append("			\"text\": \"Failed nodes:\",");
-			stringBuilder.append("			\"color\": \"" + statusColor + "\",");
-			stringBuilder.append("			\"fields\":[");
+			messageBuilder.append(",{");
+			messageBuilder.append("\"fallback\":\"Failed nodes list\",");
+			messageBuilder.append("\"text\":\"Failed nodes:\",");
+			messageBuilder.append("\"color\":\"");
+			messageBuilder.append( statusColor );
+			messageBuilder.append( "\",");
+			messageBuilder.append("\"fields\":[");
 
 			//Format a list with all failed nodes
 			boolean firstNode = true;
 			for (final String failedNode : failedNodeList) {
 
 				if (!firstNode) {
-					stringBuilder.append(',');
+					messageBuilder.append(',');
 				}
-				stringBuilder.append("				{");
-				stringBuilder.append("					\"title\":\"" + failedNode + "\",");
-				stringBuilder.append("					\"short\":true");
-				stringBuilder.append("				}");
+				messageBuilder.append("{");
+
+				messageBuilder.append("\"title\":\"");
+				messageBuilder.append("\"title\":\"");
+				messageBuilder.append( failedNode);
+				messageBuilder.append( "\",");
+				messageBuilder.append("\"short\":true");
+
+				messageBuilder.append("}");
 
 				firstNode = false;
 			}
 
-			stringBuilder.append("			]");
-			stringBuilder.append("		}");
+			messageBuilder.append(']');
+			messageBuilder.append('}');
 		}
-
-		stringBuilder.append("	]");
-
-		return stringBuilder.toString();
+		
+		return messageBuilder;
 	}
 }
