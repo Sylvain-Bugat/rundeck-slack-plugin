@@ -2,7 +2,6 @@ package com.github.sbugat.rundeck.plugins;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -52,30 +51,11 @@ public class SlackPlugin implements NotificationPlugin {
 	@Override
 	public boolean postNotification(final String trigger, @SuppressWarnings("rawtypes") final Map executionData, @SuppressWarnings("rawtypes") final Map config) {
 
-		//TODO to delete
-		//Debug display
-		System.out.println(trigger);
-		System.out.println(slackIncomingWebHookUrl);
-		for (final Object entry : executionData.keySet()) {
-			if (null != executionData.get(entry)) {
-				System.out.println(entry + " -> " + executionData.get(entry) + executionData.get(entry).getClass().getName());
-			} else {
-				System.out.println(entry + " -> " + executionData.get(entry));
-			}
-		}
-		System.out.println("");
-		for (final Object entry : config.keySet()) {
-			if (null != config.get(entry)) {
-				System.out.println(entry + " -> " + config.get(entry) + config.get(entry).getClass().getName());
-			} else {
-				System.out.println(entry + " -> " + config.get(entry));
-			}
-		}
-
+		HttpURLConnection connection = null;
 		try {
 			
 			//Prepare the connection to Slack
-			final HttpURLConnection connection = (HttpURLConnection) new URL(slackIncomingWebHookUrl).openConnection();
+			connection = (HttpURLConnection) new URL(slackIncomingWebHookUrl).openConnection();
 
 			connection.setRequestMethod("POST");
 			connection.setRequestProperty("charset", StandardCharsets.UTF_8.name());
@@ -84,33 +64,29 @@ public class SlackPlugin implements NotificationPlugin {
 			connection.setDoOutput(true);
 
 			//Send the WebHook message
-			final OutputStream os = connection.getOutputStream();
-			final DataOutputStream wr = new DataOutputStream(os);
-			wr.writeBytes("payload=" + URLEncoder.encode("{" + getMessageOptions() + getMessage(trigger, executionData, config) + "}", StandardCharsets.UTF_8.name()));
-			wr.close();
+			try( final DataOutputStream dataOutputStream = new DataOutputStream(connection.getOutputStream())) {
+				dataOutputStream.writeBytes("payload=" + URLEncoder.encode("{" + getMessageOptions() + getMessage(trigger, executionData, config) + "}", StandardCharsets.UTF_8.name()));
+			}
 
 			//Get the HTTP response code
-			System.out.println(connection.getResponseCode());
+			if( HttpURLConnection.HTTP_OK != connection.getResponseCode() ) {
+				return false;
+			}
 		} catch (final IOException e) {
 			e.printStackTrace();
 			return false;
 		}
+		finally {
+			if( null != connection ){
+				connection.disconnect();
+			}
+		}
 
 		return true;
 	}
-	
-	
-
-	public String getSlackIncomingWebHookUrl() {
-		return slackIncomingWebHookUrl;
-	}
-
-	public void setSlackIncomingWebHookUrl(final String slackIncomingWebHookUrl) {
-		this.slackIncomingWebHookUrl = slackIncomingWebHookUrl;
-	}
 
 	/**
-	 * Return a message with overrided options.
+	 * Return a message with overridden options.
 	 * 
 	 * @return optional message with channel, username and emoji to use
 	 */
@@ -223,7 +199,7 @@ public class SlackPlugin implements NotificationPlugin {
 		stringBuilder.append("	{");
 		stringBuilder.append("		\"title\": " + title + ",");
 		stringBuilder.append("		\"text\": \"" + duration + download + option + "\",");
-		stringBuilder.append("		\"color\": \"" + statusColor + "\",");
+		stringBuilder.append("		\"color\": \"" + statusColor + "\"");
 		
 		//Job options section
 		stringBuilder.append(getOptionsMessage(optionContextMap, contextMap.get("secureOption")));
@@ -245,7 +221,7 @@ public class SlackPlugin implements NotificationPlugin {
 		// Options part, secure options values are not displayed
 		if (null != optionContextMap &&  ! optionContextMap.isEmpty() ) {
 			
-			messageBuilder.append("\"fields\":[");
+			messageBuilder.append(",\"fields\":[");
 			boolean firstOption = true;
 			for (final Map.Entry<String, String> mapEntry : optionContextMap.entrySet()) {
 
@@ -310,7 +286,6 @@ public class SlackPlugin implements NotificationPlugin {
 				}
 				messageBuilder.append("{");
 
-				messageBuilder.append("\"title\":\"");
 				messageBuilder.append("\"title\":\"");
 				messageBuilder.append( failedNode);
 				messageBuilder.append( "\",");
