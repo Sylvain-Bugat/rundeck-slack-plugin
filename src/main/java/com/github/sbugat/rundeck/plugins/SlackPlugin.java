@@ -150,7 +150,7 @@ public class SlackPlugin implements NotificationPlugin {
 		final Map<String, Map<String, String>> contextMap = (Map<String, Map<String, String>>) executionData.get("context");
 		final Map<String, String> jobContextMap = contextMap.get("job");
 
-		final String projectUrl = jobContextMap.get("serverUrl") + "/" + jobContextMap.get("project");
+		final String projectUrl = jobContextMap.get("serverUrl") + "/" + executionData.get("project");
 
 		final StringBuilder formatedGroups = new StringBuilder();
 		if (null != jobContextMap.get("group")) {
