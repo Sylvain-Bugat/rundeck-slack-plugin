@@ -12,6 +12,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.dtolabs.rundeck.core.plugins.Plugin;
 import com.dtolabs.rundeck.plugins.ServiceNameConstants;
@@ -31,17 +33,19 @@ public class SlackPlugin implements NotificationPlugin {
 
 	private static final String SLACK_SUCCESS_COLOR = "good";
 	private static final String SLACK_FAILED_COLOR = "danger";
+	
+	private Logger logger = Logger.getLogger(SlackPlugin.class.getName());
 
 	@PluginProperty(title = "Incoming WebHook URL", description = "Slack incoming WebHook URL", required = true)
 	private String slackIncomingWebHookUrl;
 
-	@PluginProperty(title = "WebHook channel", description = "Override default WebHook channel")
+	@PluginProperty(title = "WebHook channel", description = "Override default WebHook channel (#channel")
 	private String slackOverrideDefaultWebHookChannel;
 
 	@PluginProperty(title = "WebHook name", description = "Override default WebHook name")
 	private String slackOverrideDefaultWebHookName;
 
-	@PluginProperty(title = "WebHook emoji", description = "Override default WebHook icon (emoji)")
+	@PluginProperty(title = "WebHook emoji", description = "Override default WebHook icon (:emoji:)")
 	private String slackOverrideDefaultWebHookEmoji;
 
 	public void ulrTest() throws MalformedURLException, IOException {
@@ -51,6 +55,19 @@ public class SlackPlugin implements NotificationPlugin {
 	@Override
 	public boolean postNotification(final String trigger, @SuppressWarnings("rawtypes") final Map executionData, @SuppressWarnings("rawtypes") final Map config) {
 
+		@SuppressWarnings("unchecked")
+		final Map<String, String> jobMap = (Map<String, String>) executionData.get("job");
+		
+		final String jobName;
+		if( null != jobMap ) {
+			jobName=jobMap.get("name");
+		}
+		else {
+			jobName = null;
+		}
+		
+		logger.log(Level.FINE, "Start to send Slack notification to WebHook URL {0} for the job {1} with trigger {2}", new Object[] {slackIncomingWebHookUrl, jobName, trigger});
+		
 		HttpURLConnection connection = null;
 		try {
 			
@@ -64,16 +81,32 @@ public class SlackPlugin implements NotificationPlugin {
 			connection.setDoOutput(true);
 
 			//Send the WebHook message
+			final String messagePayload= "{" + getMessageOptions() + getMessage(trigger, executionData, config) + "}";
 			try( final DataOutputStream dataOutputStream = new DataOutputStream(connection.getOutputStream())) {
-				dataOutputStream.writeBytes("payload=" + URLEncoder.encode("{" + getMessageOptions() + getMessage(trigger, executionData, config) + "}", StandardCharsets.UTF_8.name()));
+				dataOutputStream.writeBytes("payload=" + URLEncoder.encode(messagePayload, StandardCharsets.UTF_8.name()));
 			}
 
 			//Get the HTTP response code
-			if( HttpURLConnection.HTTP_OK != connection.getResponseCode() ) {
+			final int httpResponseCode = connection.getResponseCode();
+			if( HttpURLConnection.HTTP_OK != httpResponseCode ) {
+				
+				if( HttpURLConnection.HTTP_NOT_FOUND == httpResponseCode) {
+					logger.log(Level.SEVERE, "Invalid Slack WebHook URL {0} when sending {1} job notification with trigger {2}", new Object[] {slackIncomingWebHookUrl, jobName, trigger});
+				}
+				else {
+					logger.log(Level.SEVERE, "Error sending {0} job notification with trigger {1}, http code: {2}", new Object[] {jobName, trigger, connection.getResponseCode()});
+					logger.log(Level.FINE, "Error sending {0} job notification with trigger {1}, http code: {2}, payload:{3}", new Object[] {jobName, trigger, connection.getResponseCode(), messagePayload} );
+				}
 				return false;
 			}
-		} catch (final IOException e) {
-			e.printStackTrace();
+		}
+		catch( final MalformedURLException e ) {
+			logger.log(Level.SEVERE, "Malformed Slack WebHook URL {0} when sending {1} job notification with trigger {2}", new Object[] {slackIncomingWebHookUrl, jobName, trigger});
+			return false;
+		}
+		catch (final IOException e) {
+			logger.log(Level.SEVERE, e.getMessage());
+			logger.log(Level.FINE, e.getMessage(), e );
 			return false;
 		}
 		finally {
