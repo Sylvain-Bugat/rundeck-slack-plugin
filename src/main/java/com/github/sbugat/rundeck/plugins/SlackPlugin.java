@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,7 +28,7 @@ import com.dtolabs.rundeck.plugins.notification.NotificationPlugin;
  * @author Sylvain Bugat
  *
  */
-@Plugin(service = ServiceNameConstants.Notification, name = "SlackNotification")
+@Plugin(service = ServiceNameConstants.Notification, name = "SlackNotificationPlugin")
 @PluginDescription(title = "Slack")
 public class SlackPlugin implements NotificationPlugin {
 
@@ -155,87 +156,26 @@ public class SlackPlugin implements NotificationPlugin {
 
 		// Success and starting execution are good(green)
 		final String statusColor;
-		if ("success" == trigger || "start" == trigger) {
+		if ("success".equals(trigger) || "start".equals(trigger) ) {
 			statusColor = SLACK_SUCCESS_COLOR;
 		} else {
 			statusColor = SLACK_FAILED_COLOR;
 		}
-
-		@SuppressWarnings("unchecked")
-		final Map<String, String> jobMap = (Map<String, String>) executionData.get("job");
-
-		final String jobStatus;
-		final String endStatus;
-		if ("aborted" == executionData.get("status") && null != executionData.get("abortedby")) {
-			jobStatus = ((String) executionData.get("status")).toUpperCase() + " by " + executionData.get("abortedby");
-			endStatus = executionData.get("status") + " by " + executionData.get("abortedby");
-		} else if ("timedout" == executionData.get("status")) {
-			jobStatus = ((String) executionData.get("status")).toUpperCase();
-			endStatus = "timed-out";
-		} else {
-			jobStatus = ((String) executionData.get("status")).toUpperCase();
-			endStatus = "ended";
-		}
-		
 		
 		// Context map containing additional information
 		@SuppressWarnings("unchecked")
 		final Map<String, Map<String, String>> contextMap = (Map<String, Map<String, String>>) executionData.get("context");
-		final Map<String, String> jobContextMap = contextMap.get("job");
-
-		final String projectUrl = jobContextMap.get("serverUrl") + "/" + executionData.get("project");
-
-		final StringBuilder formatedGroups = new StringBuilder();
-		if (null != jobContextMap.get("group")) {
-			String rootGroups = "";
-			for (final String group : jobContextMap.get("group").split("/")) {
-				formatedGroups.append("<" + projectUrl + "/jobs/" + rootGroups + group + "|" + group + ">/");
-				rootGroups = rootGroups + group + "/";
-			}
-		}
-
-		final String title = "\"<" + executionData.get("href") + "|#" + executionData.get("id") + " - " + jobStatus + " - " + jobMap.get("name") + "> - <" + projectUrl + "|" + (String) executionData.get("project") + "> - " + formatedGroups + "<" + jobMap.get("href") + "|" + jobMap.get("name") + ">\"";
-
-		final Long startTime = (Long) executionData.get("dateStartedUnixtime");
-		final Long endTime = (Long) executionData.get("dateEndedUnixtime");
-		final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.getDefault());
-		final String duration;
-		if ("start" == trigger) {
-			duration = "Launched by " + executionData.get("user") + " at " + dateFormat.format(new Date(startTime));
-		} else {
-			duration = "Launched by " + executionData.get("user") + " at " + dateFormat.format(new Date(startTime)) + ", " + endStatus + " at " + dateFormat.format(new Date(endTime)) + " (duration: " + (endTime - startTime) / 1000 + "s)";
-		}
-
-		// Download link if the job fails
-		final String download;
-		if ("success" != trigger && "start" != trigger) {
-			download = "\n<" + projectUrl + "/execution/downloadOutput/" + executionData.get("id") + "|Download log ouput>";
-		} else {
-			download = "";
-		}
-
-		final Map<String, String> optionContextMap = contextMap.get("option");
-		
-		// Option header
-		final String option;
-		if (null == optionContextMap || optionContextMap.isEmpty()) {
-			option = "";
-		} else if (download.isEmpty()) {
-			option = "\nJob options:";
-		} else {
-			option = ", job options:";
-		}
 
 		// Attachment begin and title
 		final StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("\"attachments\":[");
 		stringBuilder.append("	{");
-		stringBuilder.append("		\"title\": " + title + ",");
-		stringBuilder.append("		\"text\": \"" + duration + download + option + "\",");
+		stringBuilder.append("		\"title\": " + getTitleMessage( executionData ) + ",");
+		stringBuilder.append("		\"text\": \"" + getDurationMessage(executionData) + getDownloadOptionMessage(executionData) + "\",");
 		stringBuilder.append("		\"color\": \"" + statusColor + "\"");
 		
 		//Job options section
-		stringBuilder.append(getOptionsMessage(optionContextMap, contextMap.get("secureOption")));
+		stringBuilder.append(getOptionsMessage(contextMap.get("option"), contextMap.get("secureOption")));
 
 		stringBuilder.append("	}");
 
@@ -245,6 +185,139 @@ public class SlackPlugin implements NotificationPlugin {
 		stringBuilder.append("]");
 
 		return stringBuilder.toString();
+	}
+	
+	private CharSequence getDownloadOptionMessage( @SuppressWarnings("rawtypes") final Map executionData ) {
+		
+		// Context map containing additional information
+		@SuppressWarnings("unchecked")
+		final Map<String, Map<String, String>> contextMap = (Map<String, Map<String, String>>) executionData.get("context");
+		final Map<String, String> jobContextMap = contextMap.get("job");
+				
+		final StringBuilder downloadOptionBuilder = new StringBuilder();
+		
+		// Download link if the job fails
+		boolean download = false;
+		if (! "running".equals( executionData.get("status")) && "running".equals(executionData.get("status"))) {
+			downloadOptionBuilder.append( "\n<" + jobContextMap.get("serverUrl") + "/" + executionData.get("project") + "/execution/downloadOutput/" + executionData.get("id") + "|Download log ouput>" );
+			download = true;
+		}
+
+		final Map<String, String> optionContextMap = contextMap.get("option");
+		
+		// Option header
+		if (null != optionContextMap && ! optionContextMap.isEmpty() ) {
+			if (! download) {
+				downloadOptionBuilder.append( "\nJob options:" );
+			} else {
+				downloadOptionBuilder.append( ", job options:" );
+			}
+		}
+		
+		return downloadOptionBuilder;
+	}
+	
+	private CharSequence getDurationMessage( @SuppressWarnings("rawtypes") final Map executionData ) {
+
+		final Long startTime = (Long) executionData.get("dateStartedUnixtime");
+		
+		final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.getDefault());
+	
+		final StringBuilder durationBuilder = new StringBuilder();
+		
+		durationBuilder.append("Launched by ");
+		durationBuilder.append(executionData.get("user"));
+		durationBuilder.append( " at ");
+		durationBuilder.append(dateFormat.format(new Date(startTime)));
+
+		if ("aborted".equals(executionData.get("status")) && null != executionData.get("abortedby")) {
+			
+			durationBuilder.append(executionData.get("status"));
+			durationBuilder.append(" by ");
+			durationBuilder.append(executionData.get("abortedby"));
+		}
+		else if ( ! "running".equals(executionData.get("status"))){
+			
+			final Long endTime = (Long) executionData.get("dateEndedUnixtime");
+			
+			if ("timedout".equals(executionData.get("status"))) {
+				durationBuilder.append("timed-out");
+			} else {
+				durationBuilder.append("ended");
+			}
+			
+			durationBuilder.append(dateFormat.format(new Date(endTime)));
+			durationBuilder.append(" (duration: ");
+			durationBuilder.append(formatDuration(endTime - startTime));
+			durationBuilder.append(')');
+		}
+		
+		return durationBuilder;
+	}
+	
+	private CharSequence getTitleMessage( @SuppressWarnings("rawtypes") final Map executionData ) {
+		
+		@SuppressWarnings("unchecked")
+		final Map<String, String> jobMap = (Map<String, String>) executionData.get("job");
+		
+		// Context map containing additional information
+		@SuppressWarnings("unchecked")
+		final Map<String, Map<String, String>> contextMap = (Map<String, Map<String, String>>) executionData.get("context");
+		final Map<String, String> jobContextMap = contextMap.get("job");
+	
+		final StringBuilder titleBuilder = new StringBuilder();
+		titleBuilder.append("\"<");
+		titleBuilder.append( executionData.get("href") );
+		titleBuilder.append( "|#" );
+		titleBuilder.append( executionData.get("id") );
+		titleBuilder.append( " - " );
+		titleBuilder.append( executionData.get("status") );
+		
+		if ("aborted".equals(executionData.get("status")) && null != executionData.get("abortedby")) {
+			titleBuilder.append( " by " );
+			titleBuilder.append( executionData.get("abortedby") );
+		}
+		
+		titleBuilder.append( " - " );
+		titleBuilder.append( jobMap.get("name") );
+		titleBuilder.append( "> - <" );
+		titleBuilder.append( jobContextMap.get("serverUrl") );
+		titleBuilder.append( '/' );
+		titleBuilder.append( executionData.get("project") );
+		titleBuilder.append( '|' );
+		titleBuilder.append( executionData.get("project") );
+		titleBuilder.append( "> - " );
+		
+		if (null != jobMap.get("group")) {
+			
+			final StringBuilder rootGroups = new StringBuilder();
+			for (final String group : jobMap.get("group").split("/")) {
+				
+				rootGroups.append( '/' );
+				rootGroups.append( group );
+				
+				titleBuilder.append('<');
+				titleBuilder.append(jobContextMap.get("serverUrl"));
+				titleBuilder.append('/');
+				titleBuilder.append(executionData.get("project"));
+				titleBuilder.append("/jobs");
+				titleBuilder.append(rootGroups);
+				titleBuilder.append('|');
+				titleBuilder.append(group);
+				titleBuilder.append(">/");				
+				
+				rootGroups.append( group );
+				rootGroups.append( '/' );
+			}
+		}
+		
+		titleBuilder.append('<');
+		titleBuilder.append(jobMap.get("href"));
+		titleBuilder.append('|');
+		titleBuilder.append(jobMap.get("name"));
+		titleBuilder.append(">\"");
+		
+		return titleBuilder;
 	}
 	
 	private CharSequence getOptionsMessage( final Map<String, String> optionContextMap, final Map<String, String> secureOptionContextMap ) {
@@ -335,4 +408,35 @@ public class SlackPlugin implements NotificationPlugin {
 		
 		return messageBuilder;
 	}
+	
+	/**
+     * Format a millisecond duration to a readeable formatted String.
+     * 
+     * @param milliseconds a positive duration in milliseconds to convert
+     * @return A string of the form "Xd Yh" or "Xh Ym" or "Xm Ys" or "Xs".
+     */
+    public static CharSequence formatDuration(final long milliseconds) {
+
+    	long millisecondsReminder = milliseconds;
+    	
+        final long days = TimeUnit.MILLISECONDS.toDays(millisecondsReminder);
+        millisecondsReminder -= TimeUnit.DAYS.toMillis(days);
+        final long hours = TimeUnit.MILLISECONDS.toHours(millisecondsReminder);
+        millisecondsReminder -= TimeUnit.HOURS.toMillis(hours);
+        final long minutes = TimeUnit.MILLISECONDS.toMinutes(millisecondsReminder);
+        millisecondsReminder -= TimeUnit.MINUTES.toMillis(minutes);
+        final long seconds = TimeUnit.MILLISECONDS.toSeconds(millisecondsReminder);
+        
+        if( days > 0 ){
+        	return days + "d " + hours + "h";
+        }
+        else  if( hours > 0 ){
+        	return hours + "h " + minutes + "m";
+        }
+        else  if( minutes > 0 ){
+        	return minutes + "m " + seconds + "s";
+        }
+
+        return seconds + "s";
+    }
 }
