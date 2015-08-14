@@ -82,7 +82,7 @@ public class SlackPlugin implements NotificationPlugin {
 			connection.setDoOutput(true);
 
 			//Send the WebHook message
-			final String messagePayload= "{" + getMessageOptions() + getMessage(trigger, executionData, config) + "}";
+			final String messagePayload= "{" + getMessageOptions() + getMessageAttachments(trigger, executionData) + "}";
 			try( final DataOutputStream dataOutputStream = new DataOutputStream(connection.getOutputStream())) {
 				dataOutputStream.writeBytes("payload=" + URLEncoder.encode(messagePayload, StandardCharsets.UTF_8.name()));
 			}
@@ -148,11 +148,10 @@ public class SlackPlugin implements NotificationPlugin {
 	 * 
 	 * @param trigger execution status
 	 * @param executionData current execution state
-	 * @param config plugin configuration
 	 * 
 	 * @return complete job execution message to send to Slack
 	 */
-	private String getMessage(final String trigger, @SuppressWarnings("rawtypes") final Map executionData, @SuppressWarnings("rawtypes") final Map config) {
+	private String getMessageAttachments(final String trigger, @SuppressWarnings("rawtypes") final Map executionData) {
 
 		// Success and starting execution are good(green)
 		final String statusColor;
