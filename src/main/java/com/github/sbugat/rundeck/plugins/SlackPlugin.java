@@ -32,8 +32,8 @@ import com.dtolabs.rundeck.plugins.notification.NotificationPlugin;
 @PluginDescription(title = "Slack")
 public class SlackPlugin implements NotificationPlugin {
 
-	private static final String SLACK_SUCCESS_COLOR = "good";
-	private static final String SLACK_FAILED_COLOR = "danger";
+	static final String SLACK_SUCCESS_COLOR = "good";
+	static final String SLACK_FAILED_COLOR = "danger";
 
 	private final Logger logger = Logger.getLogger(SlackPlugin.class.getName());
 
@@ -174,7 +174,7 @@ public class SlackPlugin implements NotificationPlugin {
 		stringBuilder.append("	}");
 
 		// Failed nodes section
-		stringBuilder.append(getFailedNodesMessage(executionData, statusColor));
+		stringBuilder.append(getFailedNodesAttachment(executionData, statusColor));
 
 		stringBuilder.append("]");
 
@@ -357,7 +357,7 @@ public class SlackPlugin implements NotificationPlugin {
 	 * @param statusColor status color to display
 	 * @return char sequence containing the formated section
 	 */
-	private CharSequence getFailedNodesMessage(@SuppressWarnings("rawtypes") final Map executionData, final String statusColor) {
+	private static CharSequence getFailedNodesAttachment(@SuppressWarnings("rawtypes") final Map executionData, final String statusColor) {
 
 		final StringBuilder messageBuilder = new StringBuilder();
 
@@ -366,8 +366,15 @@ public class SlackPlugin implements NotificationPlugin {
 		@SuppressWarnings("unchecked")
 		final Map<String, Integer> nodeStatus = (Map<String, Integer>) executionData.get("nodestatus");
 
+		final int totalNodes;
+		if (null != nodeStatus && null != nodeStatus.get("total")) {
+			totalNodes = nodeStatus.get("total").intValue();
+		} else {
+			totalNodes = 0;
+		}
+
 		// Failed node part if a node is failed and if it's not the only one node executed
-		if (null != failedNodeList && !failedNodeList.isEmpty() && nodeStatus.get("total") > 1) {
+		if (null != failedNodeList && !failedNodeList.isEmpty() && totalNodes > 1) {
 			messageBuilder.append(",{");
 			messageBuilder.append("\"fallback\":\"Failed nodes list\",");
 			messageBuilder.append("\"text\":\"Failed nodes:\",");
