@@ -42,9 +42,6 @@ public class SlackPluginTest {
 	@Test
 	public void testGetJobOptionsPartEmptyContext() throws Exception {
 
-		final Map<String, String> optionsMap = ImmutableMap.of();
-		final Map<String, String> secureOptionsMap = ImmutableMap.of();
-
 		final Map<String, Map<String, String>> contextMap = ImmutableMap.of();
 
 		final Map<String, Map<String, Map<String, String>>> executionData = ImmutableMap.of("context", contextMap);
@@ -52,6 +49,65 @@ public class SlackPluginTest {
 		final CharSequence jobOptionsPart = (CharSequence) callStaticMethod(SlackPlugin.class, "getJobOptionsPart", executionData);
 
 		Assertions.assertThat(jobOptionsPart).isEmpty();
+	}
+
+	@Test
+	public void testGetJobOptionsPartOneOption() throws Exception {
+
+		final Map<String, String> optionsMap = ImmutableMap.of(OPTION_1, OPTION_1_VALUE);
+
+		final Map<String, Map<String, String>> contextMap = ImmutableMap.of("option", optionsMap);
+
+		final Map<String, Map<String, Map<String, String>>> executionData = ImmutableMap.of("context", contextMap);
+
+		final CharSequence jobOptionsPart = (CharSequence) callStaticMethod(SlackPlugin.class, "getJobOptionsPart", executionData);
+
+		Assertions.assertThat(jobOptionsPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-1option-list.txt")));
+	}
+
+	@Test
+	public void testGetJobOptionsPartTwoOption() throws Exception {
+
+		final Map<String, String> optionsMap = ImmutableMap.of(OPTION_1, OPTION_1_VALUE, OPTION_2, OPTION_2_VALUE);
+		final Map<String, String> secureOptionsMap = ImmutableMap.of();
+
+		final Map<String, Map<String, String>> contextMap = ImmutableMap.of("option", optionsMap, "secureoption", secureOptionsMap);
+
+		final Map<String, Map<String, Map<String, String>>> executionData = ImmutableMap.of("context", contextMap);
+
+		final CharSequence jobOptionsPart = (CharSequence) callStaticMethod(SlackPlugin.class, "getJobOptionsPart", executionData);
+
+		Assertions.assertThat(jobOptionsPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-2options-list.txt")));
+	}
+
+	@Test
+	public void testGetJobOptionsPartOneSecureOption() throws Exception {
+
+		final Map<String, String> optionsMap = ImmutableMap.of(OPTION_1, OPTION_1_VALUE, OPTION_2, OPTION_2_VALUE);
+		final Map<String, String> secureOptionsMap = ImmutableMap.of(OPTION_1, OPTION_1_VALUE);
+
+		final Map<String, Map<String, String>> contextMap = ImmutableMap.of("option", optionsMap, "secureOption", secureOptionsMap);
+
+		final Map<String, Map<String, Map<String, String>>> executionData = ImmutableMap.of("context", contextMap);
+
+		final CharSequence jobOptionsPart = (CharSequence) callStaticMethod(SlackPlugin.class, "getJobOptionsPart", executionData);
+
+		Assertions.assertThat(jobOptionsPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-1secureoption-list.txt")));
+	}
+
+	@Test
+	public void testGetJobOptionsPartTwoSecureOption() throws Exception {
+
+		final Map<String, String> optionsMap = ImmutableMap.of(OPTION_1, OPTION_1_VALUE, OPTION_2, OPTION_2_VALUE);
+		final Map<String, String> secureOptionsMap = ImmutableMap.of(OPTION_1, OPTION_1_VALUE, OPTION_2, OPTION_2_VALUE);
+
+		final Map<String, Map<String, String>> contextMap = ImmutableMap.of("option", optionsMap, "secureOption", secureOptionsMap);
+
+		final Map<String, Map<String, Map<String, String>>> executionData = ImmutableMap.of("context", contextMap);
+
+		final CharSequence jobOptionsPart = (CharSequence) callStaticMethod(SlackPlugin.class, "getJobOptionsPart", executionData);
+
+		Assertions.assertThat(jobOptionsPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-2secureoptions-list.txt")));
 	}
 
 	@Test
