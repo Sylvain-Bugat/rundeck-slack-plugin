@@ -156,10 +156,6 @@ public class SlackPlugin implements NotificationPlugin {
 			statusColor = SLACK_FAILED_COLOR;
 		}
 
-		// Context map containing additional information
-		@SuppressWarnings("unchecked")
-		final Map<String, Map<String, String>> contextMap = (Map<String, Map<String, String>>) executionData.get("context");
-
 		// Attachment begin and title
 		final StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("\"attachments\":[");
@@ -169,7 +165,7 @@ public class SlackPlugin implements NotificationPlugin {
 		stringBuilder.append("		\"color\": \"" + statusColor + "\"");
 
 		// Job options section
-		stringBuilder.append(getOptionsMessage(contextMap.get("option"), contextMap.get("secureOption")));
+		stringBuilder.append(getJobOptionsPart(executionData));
 
 		stringBuilder.append("	}");
 
@@ -313,9 +309,20 @@ public class SlackPlugin implements NotificationPlugin {
 		return titleBuilder;
 	}
 
-	private CharSequence getOptionsMessage(final Map<String, String> optionContextMap, final Map<String, String> secureOptionContextMap) {
+	private static CharSequence getJobOptionsPart(@SuppressWarnings("rawtypes") final Map executionData) {
 
 		final StringBuilder messageBuilder = new StringBuilder();
+
+		// Context map containing additional information
+		@SuppressWarnings("unchecked")
+		final Map<String, Map<String, String>> contextMap = (Map<String, Map<String, String>>) executionData.get("context");
+
+		if (null == contextMap) {
+			return messageBuilder;
+		}
+
+		final Map<String, String> optionContextMap = contextMap.get("option");
+		final Map<String, String> secureOptionContextMap = contextMap.get("secureOption");
 
 		// Options part, secure options values are not displayed
 		if (null != optionContextMap && !optionContextMap.isEmpty()) {

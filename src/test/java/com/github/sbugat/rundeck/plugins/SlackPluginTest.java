@@ -22,22 +22,42 @@ public class SlackPluginTest {
 	private static final String NODE_1 = "1node1";
 	private static final String NODE_2 = "2node2";
 
+	private static final String OPTION_1 = "option1";
+	private static final String OPTION_1_VALUE = "value1";
+	private static final String OPTION_2 = "option2";
+	private static final String OPTION_2_VALUE = "value2";
+
 	private static final String TOTAL = "total";
+
+	@Test
+	public void testGetJobOptionsPartEmptyExecutionData() throws Exception {
+
+		final Map<String, Object> executionData = ImmutableMap.of();
+
+		final CharSequence jobOptionsPart = (CharSequence) callStaticMethod(SlackPlugin.class, "getJobOptionsPart", executionData);
+
+		Assertions.assertThat(jobOptionsPart).isEmpty();
+	}
+
+	@Test
+	public void testGetJobOptionsPartEmptyContext() throws Exception {
+
+		final Map<String, String> optionsMap = ImmutableMap.of();
+		final Map<String, String> secureOptionsMap = ImmutableMap.of();
+
+		final Map<String, Map<String, String>> contextMap = ImmutableMap.of();
+
+		final Map<String, Map<String, Map<String, String>>> executionData = ImmutableMap.of("context", contextMap);
+
+		final CharSequence jobOptionsPart = (CharSequence) callStaticMethod(SlackPlugin.class, "getJobOptionsPart", executionData);
+
+		Assertions.assertThat(jobOptionsPart).isEmpty();
+	}
 
 	@Test
 	public void testGetFailedNodesAttachmentEmptyExecutionData() throws Exception {
 
 		final Map<String, Object> executionData = ImmutableMap.of();
-
-		final CharSequence failedNodesAttachment = (CharSequence) callStaticMethod(SlackPlugin.class, "getFailedNodesAttachment", executionData, SlackPlugin.SLACK_SUCCESS_COLOR);
-
-		Assertions.assertThat(failedNodesAttachment).isEmpty();
-	}
-
-	@Test
-	public void testGetFailedNodesAttachmentEmptyFailedNodeList() throws Exception {
-
-		final Map<String, Object> executionData = ImmutableMap.of("failedNodeList", (Object) ImmutableList.of(""), "nodestatus", (Object) ImmutableMap.of("aaa", ""));
 
 		final CharSequence failedNodesAttachment = (CharSequence) callStaticMethod(SlackPlugin.class, "getFailedNodesAttachment", executionData, SlackPlugin.SLACK_SUCCESS_COLOR);
 
