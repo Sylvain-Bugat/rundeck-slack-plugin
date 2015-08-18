@@ -1,0 +1,1 @@
+,{"fallback":"Failed nodes list","text":"Failed nodes:","color":"good","fields":[{"title":"1node1","short":true},{"title":"2node2","short":true}]}

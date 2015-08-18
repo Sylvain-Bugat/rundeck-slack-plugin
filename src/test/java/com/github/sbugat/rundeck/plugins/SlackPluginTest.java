@@ -19,6 +19,11 @@ import com.google.common.collect.ImmutableMap;
  */
 public class SlackPluginTest {
 
+	private static final String NODE_1 = "1node1";
+	private static final String NODE_2 = "2node2";
+
+	private static final String TOTAL = "total";
+
 	@Test
 	public void testGetFailedNodesAttachmentEmptyExecutionData() throws Exception {
 
@@ -30,7 +35,7 @@ public class SlackPluginTest {
 	}
 
 	@Test
-	public void testGetFailedNodesAttachmentNullFailedNodeList() throws Exception {
+	public void testGetFailedNodesAttachmentEmptyFailedNodeList() throws Exception {
 
 		final Map<String, Object> executionData = ImmutableMap.of("failedNodeList", (Object) ImmutableList.of(""), "nodestatus", (Object) ImmutableMap.of("aaa", ""));
 
@@ -40,16 +45,42 @@ public class SlackPluginTest {
 	}
 
 	@Test
-	public void testGetFailedNodesAttachment() throws Exception {
+	public void testGetFailedNodesAttachmentOneNodeOnly() throws Exception {
 
-		final List<String> failedNodeList = ImmutableList.of();
-		final Map<String, Integer> nodeStatus = ImmutableMap.of();
+		final List<String> failedNodeList = ImmutableList.of(NODE_1);
+		final Map<String, Integer> nodeStatus = ImmutableMap.of(TOTAL, Integer.valueOf(1));
 
 		final Map<String, Object> executionData = ImmutableMap.of("failedNodeList", failedNodeList, "nodestatus", nodeStatus);
 
 		final CharSequence failedNodesAttachment = (CharSequence) callStaticMethod(SlackPlugin.class, "getFailedNodesAttachment", executionData, SlackPlugin.SLACK_SUCCESS_COLOR);
 
 		Assertions.assertThat(failedNodesAttachment).isEmpty();
+	}
+
+	@Test
+	public void testGetFailedNodesAttachmentZeroFailedNode() throws Exception {
+
+		final List<String> failedNodeList = ImmutableList.of();
+		final Map<String, Integer> nodeStatus = ImmutableMap.of(TOTAL, Integer.valueOf(2));
+
+		final Map<String, Object> executionData = ImmutableMap.of("failedNodeList", failedNodeList, "nodestatus", nodeStatus);
+
+		final CharSequence failedNodesAttachment = (CharSequence) callStaticMethod(SlackPlugin.class, "getFailedNodesAttachment", executionData, SlackPlugin.SLACK_SUCCESS_COLOR);
+
+		Assertions.assertThat(failedNodesAttachment).isEmpty();
+	}
+
+	@Test
+	public void testGetFailedNodesAttachmentTwoFailedNode() throws Exception {
+
+		final List<String> failedNodeList = ImmutableList.of(NODE_1, NODE_2);
+		final Map<String, Integer> nodeStatus = ImmutableMap.of(TOTAL, Integer.valueOf(2));
+
+		final Map<String, Object> executionData = ImmutableMap.of("failedNodeList", failedNodeList, "nodestatus", nodeStatus);
+
+		final CharSequence failedNodesAttachment = (CharSequence) callStaticMethod(SlackPlugin.class, "getFailedNodesAttachment", executionData, SlackPlugin.SLACK_SUCCESS_COLOR);
+
+		Assertions.assertThat(failedNodesAttachment.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-2failed-nodes-list.txt")));
 	}
 
 	@Test
