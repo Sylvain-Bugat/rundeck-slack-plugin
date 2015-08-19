@@ -271,7 +271,14 @@ public class SlackPlugin implements NotificationPlugin {
 		titleBuilder.append("|#");
 		titleBuilder.append(executionData.get("id"));
 		titleBuilder.append(" - ");
-		titleBuilder.append(executionData.get("status"));
+		final String status;
+		if( null != executionData.get("status") ) {
+			status = ((String)executionData.get("status")).toUpperCase();
+		}
+		else {
+			status = null;
+		}
+		titleBuilder.append(status);
 
 		if ("aborted".equals(executionData.get("status")) && null != executionData.get("abortedby")) {
 			titleBuilder.append(" by ");
