@@ -180,19 +180,19 @@ public class SlackPlugin implements NotificationPlugin {
 	private static CharSequence getDownloadOptionPart(@SuppressWarnings("rawtypes") final Map executionData) {
 
 		final StringBuilder downloadOptionBuilder = new StringBuilder();
-		
+
 		// Context map containing additional information
 		@SuppressWarnings("unchecked")
 		final Map<String, Map<String, String>> contextMap = (Map<String, Map<String, String>>) executionData.get("context");
-		if( null == contextMap ) {
+		if (null == contextMap) {
 			return downloadOptionBuilder;
 		}
-		
+
 		final Map<String, String> jobContextMap = contextMap.get("job");
 
 		// Download link if the job fails
 		boolean download = false;
-		if (!"running".equals(executionData.get("status")) && "running".equals(executionData.get("status"))) {
+		if (!"running".equals(executionData.get("status")) && !"success".equals(executionData.get("status"))) {
 			downloadOptionBuilder.append("\n<" + jobContextMap.get("serverUrl") + "/" + executionData.get("project") + "/execution/downloadOutput/" + executionData.get("id") + "|Download log ouput>");
 			download = true;
 		}
@@ -214,9 +214,9 @@ public class SlackPlugin implements NotificationPlugin {
 	private static CharSequence getDurationPart(@SuppressWarnings("rawtypes") final Map executionData) {
 
 		final StringBuilder durationBuilder = new StringBuilder();
-		
+
 		final Long startTime = (Long) executionData.get("dateStartedUnixtime");
-		if( null == startTime ){
+		if (null == startTime) {
 			return durationBuilder;
 		}
 
@@ -241,10 +241,10 @@ public class SlackPlugin implements NotificationPlugin {
 				durationBuilder.append(", ended");
 			}
 
-			if(  null != executionData.get("dateEndedUnixtime") ) {
+			if (null != executionData.get("dateEndedUnixtime")) {
 				final long endTime = ((Long) executionData.get("dateEndedUnixtime")).longValue();
-				
-				durationBuilder.append( " at ");
+
+				durationBuilder.append(" at ");
 				durationBuilder.append(dateFormat.format(new Date(endTime)));
 				durationBuilder.append(" (duration: ");
 				durationBuilder.append(formatDuration(endTime - startTime));
@@ -258,35 +258,34 @@ public class SlackPlugin implements NotificationPlugin {
 	private static CharSequence getTitlePart(@SuppressWarnings("rawtypes") final Map executionData) {
 
 		final StringBuilder titleBuilder = new StringBuilder();
-		
+
 		@SuppressWarnings("unchecked")
 		final Map<String, String> jobMap = (Map<String, String>) executionData.get("job");
-		if( null == jobMap ) {
+		if (null == jobMap) {
 			return titleBuilder;
 		}
 
 		// Context map containing additional information
 		@SuppressWarnings("unchecked")
 		final Map<String, Map<String, String>> contextMap = (Map<String, Map<String, String>>) executionData.get("context");
-		if( null == contextMap ) {
+		if (null == contextMap) {
 			return titleBuilder;
 		}
-		
+
 		final Map<String, String> jobContextMap = contextMap.get("job");
-		if( null == jobContextMap ) {
+		if (null == jobContextMap) {
 			return titleBuilder;
 		}
-		
+
 		titleBuilder.append("\"<");
 		titleBuilder.append(executionData.get("href"));
 		titleBuilder.append("|#");
 		titleBuilder.append(executionData.get("id"));
 		titleBuilder.append(" - ");
 		final String status;
-		if( null != executionData.get("status") ) {
-			status = ((String)executionData.get("status")).toUpperCase();
-		}
-		else {
+		if (null != executionData.get("status")) {
+			status = ((String) executionData.get("status")).toUpperCase();
+		} else {
 			status = null;
 		}
 		titleBuilder.append(status);
@@ -456,20 +455,20 @@ public class SlackPlugin implements NotificationPlugin {
 		long millisecondsReminder = milliseconds;
 
 		final long days = TimeUnit.MILLISECONDS.toDays(millisecondsReminder);
-		
+
 		if (days > 0) {
 			millisecondsReminder -= TimeUnit.DAYS.toMillis(days);
 			final long hours = TimeUnit.MILLISECONDS.toHours(millisecondsReminder);
 			return String.format("%dd%02dh", Long.valueOf(days), Long.valueOf(hours));
 		}
-		
+
 		final long hours = TimeUnit.MILLISECONDS.toHours(millisecondsReminder);
 		if (hours > 0) {
 			millisecondsReminder -= TimeUnit.HOURS.toMillis(hours);
 			final long minutes = TimeUnit.MILLISECONDS.toMinutes(millisecondsReminder);
 			return String.format("%dh%02dm", Long.valueOf(hours), Long.valueOf(minutes));
 		}
-		
+
 		final long minutes = TimeUnit.MILLISECONDS.toMinutes(millisecondsReminder);
 		if (minutes > 0) {
 			millisecondsReminder -= TimeUnit.MINUTES.toMillis(minutes);
@@ -477,7 +476,7 @@ public class SlackPlugin implements NotificationPlugin {
 
 			return String.format("%dm%02ds", Long.valueOf(minutes), seconds);
 		}
-		
+
 		final Long seconds = Long.valueOf(TimeUnit.MILLISECONDS.toSeconds(millisecondsReminder));
 		return String.format("%ds", seconds);
 	}
