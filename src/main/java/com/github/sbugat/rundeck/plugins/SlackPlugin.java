@@ -160,7 +160,7 @@ public class SlackPlugin implements NotificationPlugin {
 		final StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("\"attachments\":[");
 		stringBuilder.append("	{");
-		stringBuilder.append("		\"title\": " + getTitleMessage(executionData) + ",");
+		stringBuilder.append("		\"title\": " + getTitlePart(executionData) + ",");
 		stringBuilder.append("		\"text\": \"" + getDurationMessage(executionData) + getDownloadOptionMessage(executionData) + "\",");
 		stringBuilder.append("		\"color\": \"" + statusColor + "\"");
 
@@ -244,17 +244,28 @@ public class SlackPlugin implements NotificationPlugin {
 		return durationBuilder;
 	}
 
-	private CharSequence getTitleMessage(@SuppressWarnings("rawtypes") final Map executionData) {
+	private static CharSequence getTitlePart(@SuppressWarnings("rawtypes") final Map executionData) {
 
+		final StringBuilder titleBuilder = new StringBuilder();
+		
 		@SuppressWarnings("unchecked")
 		final Map<String, String> jobMap = (Map<String, String>) executionData.get("job");
+		if( null == jobMap ) {
+			return titleBuilder;
+		}
 
 		// Context map containing additional information
 		@SuppressWarnings("unchecked")
 		final Map<String, Map<String, String>> contextMap = (Map<String, Map<String, String>>) executionData.get("context");
+		if( null == contextMap ) {
+			return titleBuilder;
+		}
+		
 		final Map<String, String> jobContextMap = contextMap.get("job");
-
-		final StringBuilder titleBuilder = new StringBuilder();
+		if( null == jobContextMap ) {
+			return titleBuilder;
+		}
+		
 		titleBuilder.append("\"<");
 		titleBuilder.append(executionData.get("href"));
 		titleBuilder.append("|#");

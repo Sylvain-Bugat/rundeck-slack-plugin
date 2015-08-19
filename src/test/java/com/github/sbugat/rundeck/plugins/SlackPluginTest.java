@@ -2,6 +2,7 @@ package com.github.sbugat.rundeck.plugins;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +31,119 @@ public class SlackPluginTest {
 	private static final String TOTAL = "total";
 
 	@Test
+	public void testGetTitlePartEmptyExecutionData() throws Exception {
+
+		final Map<String, Object> executionData = ImmutableMap.of();
+
+		final CharSequence titlePart = (CharSequence) callStaticMethod(SlackPlugin.class, "getTitlePart", executionData);
+
+		Assertions.assertThat(titlePart).isEmpty();
+	}
+	
+	@Test
+	public void testGetTitlePartEmptyEmptyJob() throws Exception {
+
+		final Map<String, String> jobMap = ImmutableMap.of();
+		
+		final Map<String, Map<String, String>> executionData = ImmutableMap.of("job", jobMap);
+
+		final CharSequence titlePart = (CharSequence) callStaticMethod(SlackPlugin.class, "getTitlePart", executionData);
+
+		Assertions.assertThat(titlePart).isEmpty();
+	}
+	
+	@Test
+	public void testGetTitlePartEmptyJobEmptyContext() throws Exception {
+
+		final Map<String, Map<String, String>> contextMap = ImmutableMap.of();
+		final Map<String, String> jobMap = ImmutableMap.of();
+		
+		final Map<String, Map<String, ? extends Object>> executionData = ImmutableMap.of("context", contextMap, "job", jobMap);
+
+		final CharSequence titlePart = (CharSequence) callStaticMethod(SlackPlugin.class, "getTitlePart", executionData);
+
+		Assertions.assertThat(titlePart).isEmpty();
+	}
+	
+	@Test
+	public void testGetTitlePartEmptyJobEmptyContextEmptyJobContext() throws Exception {
+
+		final Map<String, String> jobContextMap = ImmutableMap.of();
+		final Map<String, Map<String, String>> contextMap = ImmutableMap.of("job", jobContextMap);
+		final Map<String, String> jobMap = ImmutableMap.of();
+		
+		final Map<String, Map<String, ? extends Object>> executionData = ImmutableMap.of("context", contextMap, "job", jobMap);
+
+		final CharSequence titlePart = (CharSequence) callStaticMethod(SlackPlugin.class, "getTitlePart", executionData);
+
+		Assertions.assertThat(titlePart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-null-title.txt")));
+	}
+	
+	@Test
+	public void testGetTitlePartRunningWithoutGroup() throws Exception {
+
+		final Map<String, String> jobContextMap = ImmutableMap.of( "serverUrl", "http://serverurl:4440");
+		final Map<String, Map<String, String>> contextMap = ImmutableMap.of("job", jobContextMap);
+		final Map<String, String> jobMap = ImmutableMap.of( "href", "http://jobnurl:4440", "name", "jobname");
+		
+		final Map<String, Object> executionDataMap = new HashMap<>();
+		executionDataMap.put("context", contextMap);
+		executionDataMap.put("job", jobMap);
+		executionDataMap.put("href", "http://executionnurl:4440");
+		executionDataMap.put("id", "idExecution66");
+		executionDataMap.put("status", "running");
+		executionDataMap.put("project", "projectName");
+		final Map<String, Object> executionData = ImmutableMap.copyOf(executionDataMap);
+		
+		final CharSequence titlePart = (CharSequence) callStaticMethod(SlackPlugin.class, "getTitlePart", executionData);
+
+		Assertions.assertThat(titlePart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-running-nogroup-title.txt")));
+	}
+	
+	@Test
+	public void testGetTitlePartAbortedByNoneWithGroup() throws Exception {
+
+		final Map<String, String> jobContextMap = ImmutableMap.of( "serverUrl", "http://serverurl:4440");
+		final Map<String, Map<String, String>> contextMap = ImmutableMap.of("job", jobContextMap);
+		final Map<String, String> jobMap = ImmutableMap.of( "href", "http://jobnurl:4440", "name", "jobname", "group", "groupName/subGroupName/subSubGroupName");
+		
+		final Map<String, Object> executionDataMap = new HashMap<>();
+		executionDataMap.put("context", contextMap);
+		executionDataMap.put("job", jobMap);
+		executionDataMap.put("href", "http://executionnurl:4440");
+		executionDataMap.put("id", "idExecution66");
+		executionDataMap.put("status", "aborted");
+		executionDataMap.put("project", "projectName");
+		final Map<String, Object> executionData = ImmutableMap.copyOf(executionDataMap);
+		
+		final CharSequence titlePart = (CharSequence) callStaticMethod(SlackPlugin.class, "getTitlePart", executionData);
+
+		Assertions.assertThat(titlePart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-aborted-bynone-group-title.txt")));
+	}
+	
+	@Test
+	public void testGetTitlePartAbortedWithGroup() throws Exception {
+
+		final Map<String, String> jobContextMap = ImmutableMap.of( "serverUrl", "http://serverurl:4440");
+		final Map<String, Map<String, String>> contextMap = ImmutableMap.of("job", jobContextMap);
+		final Map<String, String> jobMap = ImmutableMap.of( "href", "http://jobnurl:4440", "name", "jobname", "group", "groupName/subGroupName/subSubGroupName");
+		
+		final Map<String, Object> executionDataMap = new HashMap<>();
+		executionDataMap.put("context", contextMap);
+		executionDataMap.put("job", jobMap);
+		executionDataMap.put("href", "http://executionnurl:4440");
+		executionDataMap.put("id", "idExecution66");
+		executionDataMap.put("status", "aborted");
+		executionDataMap.put("project", "projectName");
+		executionDataMap.put("abortedby", "adminUser");
+		final Map<String, Object> executionData = ImmutableMap.copyOf(executionDataMap);
+		
+		final CharSequence titlePart = (CharSequence) callStaticMethod(SlackPlugin.class, "getTitlePart", executionData);
+
+		Assertions.assertThat(titlePart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-aborted-group-title.txt")));
+	}
+	
+	@Test
 	public void testGetJobOptionsPartEmptyExecutionData() throws Exception {
 
 		final Map<String, Object> executionData = ImmutableMap.of();
@@ -43,7 +157,6 @@ public class SlackPluginTest {
 	public void testGetJobOptionsPartEmptyContext() throws Exception {
 
 		final Map<String, Map<String, String>> contextMap = ImmutableMap.of();
-
 		final Map<String, Map<String, Map<String, String>>> executionData = ImmutableMap.of("context", contextMap);
 
 		final CharSequence jobOptionsPart = (CharSequence) callStaticMethod(SlackPlugin.class, "getJobOptionsPart", executionData);
@@ -55,7 +168,6 @@ public class SlackPluginTest {
 	public void testGetJobOptionsPartOneOption() throws Exception {
 
 		final Map<String, String> optionsMap = ImmutableMap.of(OPTION_1, OPTION_1_VALUE);
-
 		final Map<String, Map<String, String>> contextMap = ImmutableMap.of("option", optionsMap);
 
 		final Map<String, Map<String, Map<String, String>>> executionData = ImmutableMap.of("context", contextMap);
@@ -70,7 +182,6 @@ public class SlackPluginTest {
 
 		final Map<String, String> optionsMap = ImmutableMap.of(OPTION_1, OPTION_1_VALUE, OPTION_2, OPTION_2_VALUE);
 		final Map<String, String> secureOptionsMap = ImmutableMap.of();
-
 		final Map<String, Map<String, String>> contextMap = ImmutableMap.of("option", optionsMap, "secureoption", secureOptionsMap);
 
 		final Map<String, Map<String, Map<String, String>>> executionData = ImmutableMap.of("context", contextMap);
