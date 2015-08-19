@@ -31,13 +31,23 @@ public class SlackPluginTest {
 	private static final String TOTAL = "total";
 
 	@Test
+	public void testGetDownloadOptionParttEmptyExecutionData() throws Exception {
+
+		final Map<String, Object> executionData = ImmutableMap.of();
+
+		final CharSequence downloadOptionPart = (CharSequence) callStaticMethod(SlackPlugin.class, "getDownloadOptionPart", executionData);
+
+		Assertions.assertThat(downloadOptionPart).isEmpty();
+	}
+	
+	@Test
 	public void testGetDurationPartEmptyExecutionData() throws Exception {
 
 		final Map<String, Object> executionData = ImmutableMap.of();
 
-		final CharSequence titlePart = (CharSequence) callStaticMethod(SlackPlugin.class, "getDurationPart", executionData);
+		final CharSequence durationPart = (CharSequence) callStaticMethod(SlackPlugin.class, "getDurationPart", executionData);
 
-		Assertions.assertThat(titlePart).isEmpty();
+		Assertions.assertThat(durationPart).isEmpty();
 	}
 	
 	@Test
@@ -45,9 +55,9 @@ public class SlackPluginTest {
 
 		final Map<String, ? extends Object> executionData = ImmutableMap.of( "dateStartedUnixtime", Long.valueOf(1439471146429L), "status", "running");
 
-		final CharSequence titlePart = (CharSequence) callStaticMethod(SlackPlugin.class, "getDurationPart", executionData);
+		final CharSequence durationPart = (CharSequence) callStaticMethod(SlackPlugin.class, "getDurationPart", executionData);
 
-		Assertions.assertThat(titlePart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-duration-only-start-date.txt")));
+		Assertions.assertThat(durationPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-duration-only-start-date.txt")));
 	}
 	
 	@Test
@@ -55,9 +65,9 @@ public class SlackPluginTest {
 
 		final Map<String, ? extends Object> executionData = ImmutableMap.of( "dateStartedUnixtime", Long.valueOf(1439471146429L), "user", "launchUser", "status", "running");
 
-		final CharSequence titlePart = (CharSequence) callStaticMethod(SlackPlugin.class, "getDurationPart", executionData);
+		final CharSequence durationPart = (CharSequence) callStaticMethod(SlackPlugin.class, "getDurationPart", executionData);
 
-		Assertions.assertThat(titlePart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-duration-launched.txt")));
+		Assertions.assertThat(durationPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-duration-launched.txt")));
 	}
 	
 	@Test
@@ -65,9 +75,9 @@ public class SlackPluginTest {
 
 		final Map<String, ? extends Object> executionData = ImmutableMap.of( "dateStartedUnixtime", Long.valueOf(1439471146429L), "user", "launchUser", "status", "aborted");
 
-		final CharSequence titlePart = (CharSequence) callStaticMethod(SlackPlugin.class, "getDurationPart", executionData);
+		final CharSequence durationPart = (CharSequence) callStaticMethod(SlackPlugin.class, "getDurationPart", executionData);
 
-		Assertions.assertThat(titlePart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-duration-aborted-bynone.txt")));
+		Assertions.assertThat(durationPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-duration-aborted-bynone.txt")));
 	}
 	
 	@Test
@@ -75,9 +85,9 @@ public class SlackPluginTest {
 
 		final Map<String, ? extends Object> executionData = ImmutableMap.of( "dateStartedUnixtime", Long.valueOf(1439471146429L), "user", "launchUser", "status", "failure", "abortedby", "abortUser");
 
-		final CharSequence titlePart = (CharSequence) callStaticMethod(SlackPlugin.class, "getDurationPart", executionData);
+		final CharSequence durationPart = (CharSequence) callStaticMethod(SlackPlugin.class, "getDurationPart", executionData);
 
-		Assertions.assertThat(titlePart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-duration-aborted.txt")));
+		Assertions.assertThat(durationPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-duration-aborted.txt")));
 	}
 	
 	@Test
@@ -85,9 +95,9 @@ public class SlackPluginTest {
 
 		final Map<String, ? extends Object> executionData = ImmutableMap.of( "dateStartedUnixtime", Long.valueOf(1439471146429L), "user", "launchUser", "status", "failure", "dateEndedUnixtime", Long.valueOf(1439471158125L));
 
-		final CharSequence titlePart = (CharSequence) callStaticMethod(SlackPlugin.class, "getDurationPart", executionData);
+		final CharSequence durationPart = (CharSequence) callStaticMethod(SlackPlugin.class, "getDurationPart", executionData);
 
-		Assertions.assertThat(titlePart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-duration-ended.txt")));
+		Assertions.assertThat(durationPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-duration-ended.txt")));
 	}
 	
 	@Test
@@ -95,9 +105,9 @@ public class SlackPluginTest {
 
 		final Map<String, ? extends Object> executionData = ImmutableMap.of( "dateStartedUnixtime", Long.valueOf(1439471146429L), "user", "launchUser", "status", "timedout", "dateEndedUnixtime", Long.valueOf(1439471158125L));
 
-		final CharSequence titlePart = (CharSequence) callStaticMethod(SlackPlugin.class, "getDurationPart", executionData);
+		final CharSequence durationPart = (CharSequence) callStaticMethod(SlackPlugin.class, "getDurationPart", executionData);
 
-		Assertions.assertThat(titlePart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-duration-timedout.txt")));
+		Assertions.assertThat(durationPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-duration-timedout.txt")));
 	}
 	
 	@Test

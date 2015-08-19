@@ -161,7 +161,7 @@ public class SlackPlugin implements NotificationPlugin {
 		stringBuilder.append("\"attachments\":[");
 		stringBuilder.append("	{");
 		stringBuilder.append("		\"title\": " + getTitlePart(executionData) + ",");
-		stringBuilder.append("		\"text\": \"" + getDurationPart(executionData) + getDownloadOptionMessage(executionData) + "\",");
+		stringBuilder.append("		\"text\": \"" + getDurationPart(executionData) + getDownloadOptionPart(executionData) + "\",");
 		stringBuilder.append("		\"color\": \"" + statusColor + "\"");
 
 		// Job options section
@@ -177,14 +177,18 @@ public class SlackPlugin implements NotificationPlugin {
 		return stringBuilder.toString();
 	}
 
-	private CharSequence getDownloadOptionMessage(@SuppressWarnings("rawtypes") final Map executionData) {
+	private static CharSequence getDownloadOptionPart(@SuppressWarnings("rawtypes") final Map executionData) {
 
+		final StringBuilder downloadOptionBuilder = new StringBuilder();
+		
 		// Context map containing additional information
 		@SuppressWarnings("unchecked")
 		final Map<String, Map<String, String>> contextMap = (Map<String, Map<String, String>>) executionData.get("context");
+		if( null == contextMap ) {
+			return downloadOptionBuilder;
+		}
+		
 		final Map<String, String> jobContextMap = contextMap.get("job");
-
-		final StringBuilder downloadOptionBuilder = new StringBuilder();
 
 		// Download link if the job fails
 		boolean download = false;
