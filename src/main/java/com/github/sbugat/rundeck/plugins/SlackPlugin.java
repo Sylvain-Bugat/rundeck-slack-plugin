@@ -161,7 +161,7 @@ public class SlackPlugin implements NotificationPlugin {
 		stringBuilder.append("\"attachments\":[");
 		stringBuilder.append("	{");
 		stringBuilder.append("		\"title\": " + getTitlePart(executionData) + ",");
-		stringBuilder.append("		\"text\": \"" + getDurationMessage(executionData) + getDownloadOptionMessage(executionData) + "\",");
+		stringBuilder.append("		\"text\": \"" + getDurationPart(executionData) + getDownloadOptionMessage(executionData) + "\",");
 		stringBuilder.append("		\"color\": \"" + statusColor + "\"");
 
 		// Job options section
@@ -207,38 +207,45 @@ public class SlackPlugin implements NotificationPlugin {
 		return downloadOptionBuilder;
 	}
 
-	private CharSequence getDurationMessage(@SuppressWarnings("rawtypes") final Map executionData) {
-
-		final Long startTime = (Long) executionData.get("dateStartedUnixtime");
-
-		final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.getDefault());
+	private static CharSequence getDurationPart(@SuppressWarnings("rawtypes") final Map executionData) {
 
 		final StringBuilder durationBuilder = new StringBuilder();
+		
+		final Long startTime = (Long) executionData.get("dateStartedUnixtime");
+		if( null == startTime ){
+			return durationBuilder;
+		}
+
+		final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.getDefault());
 
 		durationBuilder.append("Launched by ");
 		durationBuilder.append(executionData.get("user"));
 		durationBuilder.append(" at ");
-		durationBuilder.append(dateFormat.format(new Date(startTime)));
+		durationBuilder.append(dateFormat.format(new Date(startTime.longValue())));
 
 		if ("aborted".equals(executionData.get("status")) && null != executionData.get("abortedby")) {
 
 			durationBuilder.append(executionData.get("status"));
 			durationBuilder.append(" by ");
 			durationBuilder.append(executionData.get("abortedby"));
-		} else if (!"running".equals(executionData.get("status"))) {
-
-			final Long endTime = (Long) executionData.get("dateEndedUnixtime");
+		}
+		if (!"running".equals(executionData.get("status"))) {
 
 			if ("timedout".equals(executionData.get("status"))) {
-				durationBuilder.append("timed-out");
+				durationBuilder.append(", timed-out");
 			} else {
-				durationBuilder.append("ended");
+				durationBuilder.append(", ended");
 			}
 
-			durationBuilder.append(dateFormat.format(new Date(endTime)));
-			durationBuilder.append(" (duration: ");
-			durationBuilder.append(formatDuration(endTime - startTime));
-			durationBuilder.append(')');
+			if(  null != executionData.get("dateEndedUnixtime") ) {
+				final long endTime = ((Long) executionData.get("dateEndedUnixtime")).longValue();
+				
+				durationBuilder.append( " at ");
+				durationBuilder.append(dateFormat.format(new Date(endTime)));
+				durationBuilder.append(" (duration: ");
+				durationBuilder.append(formatDuration(endTime - startTime));
+				durationBuilder.append(')');
+			}
 		}
 
 		return durationBuilder;
