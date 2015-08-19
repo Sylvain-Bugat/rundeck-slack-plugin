@@ -452,21 +452,29 @@ public class SlackPlugin implements NotificationPlugin {
 		long millisecondsReminder = milliseconds;
 
 		final long days = TimeUnit.MILLISECONDS.toDays(millisecondsReminder);
-		millisecondsReminder -= TimeUnit.DAYS.toMillis(days);
-		final long hours = TimeUnit.MILLISECONDS.toHours(millisecondsReminder);
-		millisecondsReminder -= TimeUnit.HOURS.toMillis(hours);
-		final long minutes = TimeUnit.MILLISECONDS.toMinutes(millisecondsReminder);
-		millisecondsReminder -= TimeUnit.MINUTES.toMillis(minutes);
-		final Long seconds = Long.valueOf(TimeUnit.MILLISECONDS.toSeconds(millisecondsReminder));
-
+		
 		if (days > 0) {
+			millisecondsReminder -= TimeUnit.DAYS.toMillis(days);
+			final long hours = TimeUnit.MILLISECONDS.toHours(millisecondsReminder);
 			return String.format("%dd%02dh", Long.valueOf(days), Long.valueOf(hours));
-		} else if (hours > 0) {
+		}
+		
+		final long hours = TimeUnit.MILLISECONDS.toHours(millisecondsReminder);
+		if (hours > 0) {
+			millisecondsReminder -= TimeUnit.HOURS.toMillis(hours);
+			final long minutes = TimeUnit.MILLISECONDS.toMinutes(millisecondsReminder);
 			return String.format("%dh%02dm", Long.valueOf(hours), Long.valueOf(minutes));
-		} else if (minutes > 0) {
+		}
+		
+		final long minutes = TimeUnit.MILLISECONDS.toMinutes(millisecondsReminder);
+		if (minutes > 0) {
+			millisecondsReminder -= TimeUnit.MINUTES.toMillis(minutes);
+			final Long seconds = Long.valueOf(TimeUnit.MILLISECONDS.toSeconds(millisecondsReminder));
+
 			return String.format("%dm%02ds", Long.valueOf(minutes), seconds);
 		}
-
+		
+		final Long seconds = Long.valueOf(TimeUnit.MILLISECONDS.toSeconds(millisecondsReminder));
 		return String.format("%ds", seconds);
 	}
 }
