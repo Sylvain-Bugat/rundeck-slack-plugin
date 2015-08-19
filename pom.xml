@@ -184,7 +184,7 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>${maven.pluginsurefire.version}</version>
 				<configuration>
-					<argLine>-Duser.language=en -Duser.region=GB</argLine>
+					<argLine>-Duser.language=en -Duser.region=GB -Duser.timezone=GMT+2</argLine>
 				</configuration>
 			</plugin>
 
