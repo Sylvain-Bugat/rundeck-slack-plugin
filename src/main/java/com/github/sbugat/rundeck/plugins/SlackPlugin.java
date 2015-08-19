@@ -81,7 +81,7 @@ public class SlackPlugin implements NotificationPlugin {
 			connection.setDoOutput(true);
 
 			// Send the WebHook message
-			final String messagePayload = "{" + getMessageOptions() + getMessageAttachments(trigger, executionData) + "}";
+			final String messagePayload = "{" + getOptions() + getMessageAttachments(trigger, executionData) + "}";
 			try (final DataOutputStream dataOutputStream = new DataOutputStream(connection.getOutputStream())) {
 				dataOutputStream.writeBytes("payload=" + URLEncoder.encode(messagePayload, StandardCharsets.UTF_8.name()));
 			}
@@ -119,7 +119,7 @@ public class SlackPlugin implements NotificationPlugin {
 	 *
 	 * @return optional message with channel, username and emoji to use
 	 */
-	private String getMessageOptions() {
+	private String getOptions() {
 
 		final StringBuilder stringBuilder = new StringBuilder();
 		if (null != slackOverrideDefaultWebHookChannel) {

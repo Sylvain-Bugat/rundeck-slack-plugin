@@ -31,6 +31,14 @@ public class SlackPluginTest {
 	private static final String TOTAL = "total";
 
 	@Test
+	public void testGetOptionsEmpty() throws Exception {
+
+		final String optionsPart = (String) callMethod(new SlackPlugin(), "getOptions");
+
+		Assertions.assertThat(optionsPart).isEmpty();
+	}
+
+	@Test
 	public void testGetDownloadOptionPartEmptyExecutionData() throws Exception {
 
 		final Map<String, Object> executionData = ImmutableMap.of();
@@ -428,6 +436,20 @@ public class SlackPluginTest {
 			Assertions.assertThat(SlackPlugin.formatDuration(days * 86_400_000l)).isEqualTo(days + "d00h");
 			Assertions.assertThat(SlackPlugin.formatDuration(days * 86_400_000l + 86_399_999l)).isEqualTo(days + "d23h");
 		}
+	}
+
+	public static Object callMethod(final Object object, final String methodName, final Object... methodArguments) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		if (object == null || methodName == null) {
+			return null;
+		}
+
+		final Class<?> baseClass = object.getClass();
+
+		final Method targetMethod = getMethod(baseClass, methodName, methodArguments);
+		if (!targetMethod.isAccessible()) {
+			targetMethod.setAccessible(true);
+		}
+		return targetMethod.invoke(object, methodArguments);
 	}
 
 	public static Object callStaticMethod(final Class<?> baseClass, final String methodName, final Object... methodArguments) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
