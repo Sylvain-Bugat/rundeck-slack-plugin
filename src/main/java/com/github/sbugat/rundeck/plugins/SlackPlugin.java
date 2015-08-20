@@ -81,7 +81,7 @@ public class SlackPlugin implements NotificationPlugin {
 			connection.setDoOutput(true);
 
 			// Send the WebHook message
-			final String messagePayload = "{" + getOptions() + getMessageAttachments(trigger, executionData) + "}";
+			final String messagePayload =  getMessage(trigger, executionData);
 			try (final DataOutputStream dataOutputStream = new DataOutputStream(connection.getOutputStream())) {
 				dataOutputStream.writeBytes("payload=" + URLEncoder.encode(messagePayload, StandardCharsets.UTF_8.name()));
 			}
@@ -112,6 +112,22 @@ public class SlackPlugin implements NotificationPlugin {
 		}
 
 		return true;
+	}
+	
+	/**
+	 * Return the complete message to send.
+	 *
+	 * @return complete message
+	 */
+	private String getMessage( final String trigger, @SuppressWarnings("rawtypes") final Map executionData ) {
+		
+		final StringBuilder messageBuilder = new StringBuilder();
+		messageBuilder.append('{');
+		messageBuilder.append( getOptions() );
+		messageBuilder.append( getAttachmentsPart(trigger, executionData) );
+		messageBuilder.append('}');
+		
+		return messageBuilder.toString();
 	}
 
 	/**
@@ -144,9 +160,9 @@ public class SlackPlugin implements NotificationPlugin {
 	 * @param trigger execution status
 	 * @param executionData current execution state
 	 *
-	 * @return complete job execution message to send to Slack
+	 * @return attachments part
 	 */
-	private String getMessageAttachments(final String trigger, @SuppressWarnings("rawtypes") final Map executionData) {
+	private static CharSequence getAttachmentsPart(final String trigger, @SuppressWarnings("rawtypes") final Map executionData) {
 
 		// Success and starting execution are good(green)
 		final String statusColor;
@@ -159,22 +175,22 @@ public class SlackPlugin implements NotificationPlugin {
 		// Attachment begin and title
 		final StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("\"attachments\":[");
-		stringBuilder.append("	{");
-		stringBuilder.append("		\"title\": " + getTitlePart(executionData) + ",");
-		stringBuilder.append("		\"text\": \"" + getDurationPart(executionData) + getDownloadOptionPart(executionData) + "\",");
-		stringBuilder.append("		\"color\": \"" + statusColor + "\"");
+		stringBuilder.append("{");
+		stringBuilder.append("\"title\":" + getTitlePart(executionData) + ",");
+		stringBuilder.append("\"text\":\"" + getDurationPart(executionData) + getDownloadOptionPart(executionData) + "\",");
+		stringBuilder.append("\"color\":\"" + statusColor + "\"");
 
 		// Job options section
 		stringBuilder.append(getJobOptionsPart(executionData));
 
-		stringBuilder.append("	}");
+		stringBuilder.append('}');
 
 		// Failed nodes section
 		stringBuilder.append(getFailedNodesAttachment(executionData, statusColor));
 
-		stringBuilder.append("]");
+		stringBuilder.append(']');
 
-		return stringBuilder.toString();
+		return stringBuilder;
 	}
 
 	private static CharSequence getDownloadOptionPart(@SuppressWarnings("rawtypes") final Map executionData) {
@@ -277,7 +293,7 @@ public class SlackPlugin implements NotificationPlugin {
 			return titleBuilder;
 		}
 
-		titleBuilder.append("\"<");
+		titleBuilder.append('<');
 		titleBuilder.append(executionData.get("href"));
 		titleBuilder.append("|#");
 		titleBuilder.append(executionData.get("id"));
@@ -332,7 +348,7 @@ public class SlackPlugin implements NotificationPlugin {
 		titleBuilder.append(jobMap.get("href"));
 		titleBuilder.append('|');
 		titleBuilder.append(jobMap.get("name"));
-		titleBuilder.append(">\"");
+		titleBuilder.append('>');
 
 		return titleBuilder;
 	}

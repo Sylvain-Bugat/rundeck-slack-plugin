@@ -32,6 +32,57 @@ public class SlackPluginTest {
 	private static final String TOTAL = "total";
 
 	@Test
+	public void testGetMessageStart() throws Exception {
+
+		final Map<String, Object> executionData = ImmutableMap.of();
+		
+		final String message = (String) callMethod(new SlackPlugin(), "getMessage", "start", executionData );
+		Assertions.assertThat(message).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-message-start.txt")));
+	}
+	
+	@Test
+	public void testGetMessageFailure() throws Exception {
+
+		final Map<String, Object> executionData = ImmutableMap.of();
+		
+		final String message = (String) callMethod(new SlackPlugin(), "getMessage", "failure", executionData );
+		Assertions.assertThat(message).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-message-failure.txt")));
+	}
+	
+	@Test
+	public void testGetMessageComplete() throws Exception {
+
+		final SlackPlugin slackPlugin = new SlackPlugin();
+		setField(slackPlugin, "slackOverrideDefaultWebHookChannel", "#general");
+		setField(slackPlugin, "slackOverrideDefaultWebHookName", "Rundeck");
+		setField(slackPlugin, "slackOverrideDefaultWebHookEmoji", ":beer:");
+		
+		final Map<String, String> optionContextMap = ImmutableMap.of(OPTION_1, OPTION_1_VALUE);
+		final Map<String, String> jobContextMap = ImmutableMap.of("serverUrl", "http://serverurl:4440");
+		final Map<String, Map<String, String>> contextMap = ImmutableMap.of("job", jobContextMap, "option", optionContextMap);
+			
+		final Map<String, String> jobMap = ImmutableMap.of("href", "http://jobnurl:4440", "name", "jobname", "group", "groupName/subGroupName/subSubGroupName");
+
+		final Map<String, Object> executionDataMap = new HashMap<>();
+		executionDataMap.put("context", contextMap);
+		executionDataMap.put("job", jobMap);
+		executionDataMap.put("href", "http://executionnurl:4440");
+		executionDataMap.put("id", "idExecution66");
+		executionDataMap.put("status", "aborted");
+		executionDataMap.put("name", "jobname");
+		executionDataMap.put("group", "groupName/subGroupName/subSubGroupName");
+		executionDataMap.put("project", "projectName");
+		executionDataMap.put("abortedby", "adminUser");
+		executionDataMap.put("user", "launchUser");
+		executionDataMap.put("dateStartedUnixtime", Long.valueOf(1439471146429L));
+		executionDataMap.put("dateEndedUnixtime", Long.valueOf(1439471158125L));
+		final Map<String, Object> executionData = ImmutableMap.copyOf(executionDataMap);
+		
+		final String message = (String) callMethod(slackPlugin, "getMessage", "failure", executionData );
+		Assertions.assertThat(message).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-message-complete.txt")));
+	}
+	
+	@Test
 	public void testGetOptionsEmpty() throws Exception {
 
 		final String optionsPart = (String) callMethod(new SlackPlugin(), "getOptions");
@@ -46,7 +97,7 @@ public class SlackPluginTest {
 		setField(slackPlugin, "slackOverrideDefaultWebHookChannel", "#newchannel");
 		final String optionsPart = (String) callMethod(slackPlugin, "getOptions");
 
-		Assertions.assertThat(optionsPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-option-channel.txt")));
+		Assertions.assertThat(optionsPart).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-option-channel.txt")));
 	}
 	
 	@Test
@@ -56,7 +107,7 @@ public class SlackPluginTest {
 		setField(slackPlugin, "slackOverrideDefaultWebHookName", "HAL");
 		final String optionsPart = (String) callMethod(slackPlugin, "getOptions");
 
-		Assertions.assertThat(optionsPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-option-name.txt")));
+		Assertions.assertThat(optionsPart).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-option-name.txt")));
 	}
 	
 	@Test
@@ -66,7 +117,7 @@ public class SlackPluginTest {
 		setField(slackPlugin, "slackOverrideDefaultWebHookEmoji", ":cow:");
 		final String optionsPart = (String) callMethod(slackPlugin, "getOptions");
 
-		Assertions.assertThat(optionsPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-option-emoji.txt")));
+		Assertions.assertThat(optionsPart).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-option-emoji.txt")));
 	}
 	
 	@Test
