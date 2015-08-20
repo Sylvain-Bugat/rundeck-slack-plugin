@@ -1,5 +1,6 @@
 package com.github.sbugat.rundeck.plugins;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -36,6 +37,48 @@ public class SlackPluginTest {
 		final String optionsPart = (String) callMethod(new SlackPlugin(), "getOptions");
 
 		Assertions.assertThat(optionsPart).isEmpty();
+	}
+	
+	@Test
+	public void testGetOptionsChannel() throws Exception {
+
+		final SlackPlugin slackPlugin = new SlackPlugin();
+		setField(slackPlugin, "slackOverrideDefaultWebHookChannel", "#newchannel");
+		final String optionsPart = (String) callMethod(slackPlugin, "getOptions");
+
+		Assertions.assertThat(optionsPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-option-channel.txt")));
+	}
+	
+	@Test
+	public void testGetOptionsWebHookName() throws Exception {
+
+		final SlackPlugin slackPlugin = new SlackPlugin();
+		setField(slackPlugin, "slackOverrideDefaultWebHookName", "HAL");
+		final String optionsPart = (String) callMethod(slackPlugin, "getOptions");
+
+		Assertions.assertThat(optionsPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-option-name.txt")));
+	}
+	
+	@Test
+	public void testGetOptionsEmoji() throws Exception {
+
+		final SlackPlugin slackPlugin = new SlackPlugin();
+		setField(slackPlugin, "slackOverrideDefaultWebHookEmoji", ":cow:");
+		final String optionsPart = (String) callMethod(slackPlugin, "getOptions");
+
+		Assertions.assertThat(optionsPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-option-emoji.txt")));
+	}
+	
+	@Test
+	public void testGetOptionsAll() throws Exception {
+
+		final SlackPlugin slackPlugin = new SlackPlugin();
+		setField(slackPlugin, "slackOverrideDefaultWebHookChannel", "#general");
+		setField(slackPlugin, "slackOverrideDefaultWebHookName", "Rundeck");
+		setField(slackPlugin, "slackOverrideDefaultWebHookEmoji", ":beer:");
+		final String optionsPart = (String) callMethod(slackPlugin, "getOptions");
+
+		Assertions.assertThat(optionsPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-option-all.txt")));
 	}
 
 	@Test
@@ -436,6 +479,20 @@ public class SlackPluginTest {
 			Assertions.assertThat(SlackPlugin.formatDuration(days * 86_400_000l)).isEqualTo(days + "d00h");
 			Assertions.assertThat(SlackPlugin.formatDuration(days * 86_400_000l + 86_399_999l)).isEqualTo(days + "d23h");
 		}
+	}
+	
+	
+	public static void setField( final Object object, final String fieldName, final Object fieldValue ) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException{
+		if (object == null || fieldName == null) {
+			return;
+		}
+		
+		final Class<?> baseClass = object.getClass();
+		final Field field = baseClass.getDeclaredField(fieldName);
+		if( !field.isAccessible() ) {
+			field.setAccessible( true);
+		}
+		field.set(object, fieldValue);
 	}
 
 	public static Object callMethod(final Object object, final String methodName, final Object... methodArguments) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
