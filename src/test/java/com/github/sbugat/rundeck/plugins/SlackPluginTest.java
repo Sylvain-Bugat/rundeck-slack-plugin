@@ -63,6 +63,9 @@ public class SlackPluginTest {
 			
 		final Map<String, String> jobMap = ImmutableMap.of("href", "http://jobnurl:4440", "name", "jobname", "group", "groupName/subGroupName/subSubGroupName");
 
+		final List<String> failedNodeList = ImmutableList.of(NODE_1, NODE_2);
+		final Map<String, Integer> nodeStatus = ImmutableMap.of(TOTAL, Integer.valueOf(2));
+		
 		final Map<String, Object> executionDataMap = new HashMap<>();
 		executionDataMap.put("context", contextMap);
 		executionDataMap.put("job", jobMap);
@@ -76,6 +79,8 @@ public class SlackPluginTest {
 		executionDataMap.put("user", "launchUser");
 		executionDataMap.put("dateStartedUnixtime", Long.valueOf(1439471146429L));
 		executionDataMap.put("dateEndedUnixtime", Long.valueOf(1439471158125L));
+		executionDataMap.put("failedNodeList", failedNodeList);
+		executionDataMap.put("nodestatus", nodeStatus);
 		final Map<String, Object> executionData = ImmutableMap.copyOf(executionDataMap);
 		
 		final String message = (String) callMethod(slackPlugin, "getMessage", "failure", executionData );
