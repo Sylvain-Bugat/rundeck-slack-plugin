@@ -4,7 +4,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
@@ -49,9 +48,7 @@ public class SlackPlugin implements NotificationPlugin {
 	@PluginProperty(title = "WebHook emoji", description = "Override default WebHook icon (:emoji:)")
 	private String slackOverrideDefaultWebHookEmoji;
 
-	public void ulrTest() throws MalformedURLException, IOException {
-		new URL(null).openConnection();
-	}
+	private URLTools uRLTools = new URLTools();
 
 	@Override
 	public boolean postNotification(final String trigger, @SuppressWarnings("rawtypes") final Map executionData, @SuppressWarnings("rawtypes") final Map config) {
@@ -72,7 +69,7 @@ public class SlackPlugin implements NotificationPlugin {
 		try {
 
 			// Prepare the connection to Slack
-			connection = (HttpURLConnection) new URL(slackIncomingWebHookUrl).openConnection();
+			connection = uRLTools.openURLConnection(slackIncomingWebHookUrl);
 
 			connection.setRequestMethod("POST");
 			connection.setRequestProperty("charset", StandardCharsets.UTF_8.name());
@@ -93,8 +90,8 @@ public class SlackPlugin implements NotificationPlugin {
 				if (HttpURLConnection.HTTP_NOT_FOUND == httpResponseCode) {
 					logger.log(Level.SEVERE, "Invalid Slack WebHook URL {0} when sending {1} job notification with trigger {2}", new Object[] { slackIncomingWebHookUrl, jobName, trigger });
 				} else {
-					logger.log(Level.SEVERE, "Error sending {0} job notification with trigger {1}, http code: {2}", new Object[] { jobName, trigger, connection.getResponseCode() });
-					logger.log(Level.FINE, "Error sending {0} job notification with trigger {1}, http code: {2}, payload:{3}", new Object[] { jobName, trigger, connection.getResponseCode(), messagePayload });
+					logger.log(Level.SEVERE, "Error sending {0} job notification with trigger {1}, http code: {2}", new Object[] { jobName, trigger, httpResponseCode });
+					logger.log(Level.FINE, "Error sending {0} job notification with trigger {1}, http code: {2}, payload:{3}", new Object[] { jobName, trigger, httpResponseCode, messagePayload });
 				}
 				return false;
 			}

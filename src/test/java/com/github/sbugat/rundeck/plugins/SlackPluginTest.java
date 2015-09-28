@@ -1,14 +1,25 @@
 package com.github.sbugat.rundeck.plugins;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.assertj.core.api.Assertions;
+import org.junit.After;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -19,6 +30,7 @@ import com.google.common.collect.ImmutableMap;
  * @author Sylvain Bugat
  *
  */
+@RunWith(MockitoJUnitRunner.class)
 public class SlackPluginTest {
 
 	private static final String NODE_1 = "1node1";
@@ -31,12 +43,81 @@ public class SlackPluginTest {
 
 	private static final String TOTAL = "total";
 
+	@Mock
+	private URLTools uRLTools;
+	
+	@Mock
+	private HttpURLConnection connection;
+	
+	@InjectMocks
+	private SlackPlugin slackPlugin;
+	
+	@After
+	public void cleanUp() {
+		Mockito.verifyNoMoreInteractions(uRLTools, connection);
+	}
+	
+	@Test
+	public void testPostNotificationOK() throws Exception {
+
+		Mockito.doReturn(connection).when(uRLTools).openURLConnection(null);
+		
+		final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+		Mockito.doReturn(byteArrayOutputStream).when(connection).getOutputStream();
+		Mockito.doReturn(HttpURLConnection.HTTP_OK).when(connection).getResponseCode();
+		
+		final Map<String, String> executionData = ImmutableMap.of( "name", "jobname" );
+		
+		Assertions.assertThat( slackPlugin.postNotification("success", executionData, null) ).isTrue();
+		
+		Assertions.assertThat(byteArrayOutputStream.toString(StandardCharsets.UTF_8.name())).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-notification-ok.txt")));
+		
+		//Verify URLTools call
+		Mockito.verify(uRLTools).openURLConnection(null);
+		
+		//Verify connection calls
+		Mockito.verify(connection).getOutputStream();
+		Mockito.verify(connection).setRequestMethod("POST");
+		Mockito.verify(connection).setRequestProperty("charset", StandardCharsets.UTF_8.name());
+		Mockito.verify(connection).setUseCaches(false);
+		Mockito.verify(connection).setDoInput(true);
+		Mockito.verify(connection).setDoOutput(true);
+		Mockito.verify(connection).getResponseCode();
+		Mockito.verify(connection).disconnect();
+	}
+	
+	@Test
+	public void testPostNotificationMalformedURLException() throws Exception {
+
+		Mockito.doThrow(new MalformedURLException()).when(uRLTools).openURLConnection(null);
+		
+		final Map<String, Object> executionData = ImmutableMap.of();
+		
+		Assertions.assertThat( slackPlugin.postNotification("success", executionData, null) ).isFalse();
+		
+		//Verify URLTools call
+		Mockito.verify(uRLTools).openURLConnection(null);
+	}
+	
+	@Test
+	public void testPostNotificationIOException() throws Exception {
+
+		Mockito.doThrow(new IOException()).when(uRLTools).openURLConnection(null);
+		
+		final Map<String, Object> executionData = ImmutableMap.of();
+		
+		Assertions.assertThat( slackPlugin.postNotification("success", executionData, null) ).isFalse();
+		
+		//Verify URLTools call
+		Mockito.verify(uRLTools).openURLConnection(null);
+	}
+	
 	@Test
 	public void testGetMessageStart() throws Exception {
 
 		final Map<String, Object> executionData = ImmutableMap.of();
 		
-		final String message = (String) callMethod(new SlackPlugin(), "getMessage", "start", executionData );
+		final String message = (String) callMethod(slackPlugin, "getMessage", "start", executionData );
 		Assertions.assertThat(message).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-message-start.txt")));
 	}
 	
@@ -45,14 +126,13 @@ public class SlackPluginTest {
 
 		final Map<String, Object> executionData = ImmutableMap.of();
 		
-		final String message = (String) callMethod(new SlackPlugin(), "getMessage", "failure", executionData );
+		final String message = (String) callMethod(slackPlugin, "getMessage", "failure", executionData );
 		Assertions.assertThat(message).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-message-failure.txt")));
 	}
 	
 	@Test
 	public void testGetMessageComplete() throws Exception {
 
-		final SlackPlugin slackPlugin = new SlackPlugin();
 		setField(slackPlugin, "slackOverrideDefaultWebHookChannel", "#general");
 		setField(slackPlugin, "slackOverrideDefaultWebHookName", "Rundeck");
 		setField(slackPlugin, "slackOverrideDefaultWebHookEmoji", ":beer:");
@@ -90,7 +170,7 @@ public class SlackPluginTest {
 	@Test
 	public void testGetOptionsEmpty() throws Exception {
 
-		final String optionsPart = (String) callMethod(new SlackPlugin(), "getOptions");
+		final String optionsPart = (String) callMethod(slackPlugin, "getOptions");
 
 		Assertions.assertThat(optionsPart).isEmpty();
 	}
@@ -98,7 +178,6 @@ public class SlackPluginTest {
 	@Test
 	public void testGetOptionsChannel() throws Exception {
 
-		final SlackPlugin slackPlugin = new SlackPlugin();
 		setField(slackPlugin, "slackOverrideDefaultWebHookChannel", "#newchannel");
 		final String optionsPart = (String) callMethod(slackPlugin, "getOptions");
 
@@ -108,7 +187,6 @@ public class SlackPluginTest {
 	@Test
 	public void testGetOptionsWebHookName() throws Exception {
 
-		final SlackPlugin slackPlugin = new SlackPlugin();
 		setField(slackPlugin, "slackOverrideDefaultWebHookName", "HAL");
 		final String optionsPart = (String) callMethod(slackPlugin, "getOptions");
 
@@ -118,7 +196,6 @@ public class SlackPluginTest {
 	@Test
 	public void testGetOptionsEmoji() throws Exception {
 
-		final SlackPlugin slackPlugin = new SlackPlugin();
 		setField(slackPlugin, "slackOverrideDefaultWebHookEmoji", ":cow:");
 		final String optionsPart = (String) callMethod(slackPlugin, "getOptions");
 
@@ -128,7 +205,6 @@ public class SlackPluginTest {
 	@Test
 	public void testGetOptionsAll() throws Exception {
 
-		final SlackPlugin slackPlugin = new SlackPlugin();
 		setField(slackPlugin, "slackOverrideDefaultWebHookChannel", "#general");
 		setField(slackPlugin, "slackOverrideDefaultWebHookName", "Rundeck");
 		setField(slackPlugin, "slackOverrideDefaultWebHookEmoji", ":beer:");
