@@ -66,7 +66,10 @@ public class SlackPluginTest {
 		Mockito.doReturn(byteArrayOutputStream).when(connection).getOutputStream();
 		Mockito.doReturn(HttpURLConnection.HTTP_OK).when(connection).getResponseCode();
 		
-		final Map<String, String> executionData = ImmutableMap.of( "name", "jobname" );
+		final Map<String, String> jobMap = ImmutableMap.of("name", "jobname");
+		final Map<String, Object> executionDataMap = new HashMap<>();
+		executionDataMap.put("job", jobMap);
+		final Map<String, Object> executionData = ImmutableMap.copyOf(executionDataMap);
 		
 		Assertions.assertThat( slackPlugin.postNotification("success", executionData, null) ).isTrue();
 		
@@ -110,6 +113,70 @@ public class SlackPluginTest {
 		
 		//Verify URLTools call
 		Mockito.verify(uRLTools).openURLConnection(null);
+	}
+	
+	@Test
+	public void testPostNotificationNotFound404() throws Exception {
+
+		Mockito.doReturn(connection).when(uRLTools).openURLConnection(null);
+		
+		final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+		Mockito.doReturn(byteArrayOutputStream).when(connection).getOutputStream();
+		Mockito.doReturn(HttpURLConnection.HTTP_NOT_FOUND).when(connection).getResponseCode();
+		
+		final Map<String, String> jobMap = ImmutableMap.of("name", "jobname");
+		final Map<String, Object> executionDataMap = new HashMap<>();
+		executionDataMap.put("job", jobMap);
+		final Map<String, Object> executionData = ImmutableMap.copyOf(executionDataMap);
+		
+		Assertions.assertThat( slackPlugin.postNotification("success", executionData, null) ).isFalse();
+		
+		Assertions.assertThat(byteArrayOutputStream.toString(StandardCharsets.UTF_8.name())).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-notification-ok.txt")));
+		
+		//Verify URLTools call
+		Mockito.verify(uRLTools).openURLConnection(null);
+		
+		//Verify connection calls
+		Mockito.verify(connection).getOutputStream();
+		Mockito.verify(connection).setRequestMethod("POST");
+		Mockito.verify(connection).setRequestProperty("charset", StandardCharsets.UTF_8.name());
+		Mockito.verify(connection).setUseCaches(false);
+		Mockito.verify(connection).setDoInput(true);
+		Mockito.verify(connection).setDoOutput(true);
+		Mockito.verify(connection).getResponseCode();
+		Mockito.verify(connection).disconnect();
+	}
+	
+	@Test
+	public void testPostNotificationInternalError500() throws Exception {
+
+		Mockito.doReturn(connection).when(uRLTools).openURLConnection(null);
+		
+		final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+		Mockito.doReturn(byteArrayOutputStream).when(connection).getOutputStream();
+		Mockito.doReturn(HttpURLConnection.HTTP_INTERNAL_ERROR).when(connection).getResponseCode();
+		
+		final Map<String, String> jobMap = ImmutableMap.of("name", "jobname");
+		final Map<String, Object> executionDataMap = new HashMap<>();
+		executionDataMap.put("job", jobMap);
+		final Map<String, Object> executionData = ImmutableMap.copyOf(executionDataMap);
+		
+		Assertions.assertThat( slackPlugin.postNotification("success", executionData, null) ).isFalse();
+		
+		Assertions.assertThat(byteArrayOutputStream.toString(StandardCharsets.UTF_8.name())).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-notification-ok.txt")));
+		
+		//Verify URLTools call
+		Mockito.verify(uRLTools).openURLConnection(null);
+		
+		//Verify connection calls
+		Mockito.verify(connection).getOutputStream();
+		Mockito.verify(connection).setRequestMethod("POST");
+		Mockito.verify(connection).setRequestProperty("charset", StandardCharsets.UTF_8.name());
+		Mockito.verify(connection).setUseCaches(false);
+		Mockito.verify(connection).setDoInput(true);
+		Mockito.verify(connection).setDoOutput(true);
+		Mockito.verify(connection).getResponseCode();
+		Mockito.verify(connection).disconnect();
 	}
 	
 	@Test
