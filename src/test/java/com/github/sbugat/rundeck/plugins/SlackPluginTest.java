@@ -342,6 +342,20 @@ public class SlackPluginTest {
 
 		Assertions.assertThat(downloadOptionPart).isEmpty();
 	}
+	
+	@Test
+	public void testGetDownloadOptionPartRunningWithOptions() throws Exception {
+
+		final Map<String, String> optionContextMap = ImmutableMap.of(OPTION_1, OPTION_1_VALUE);
+		final Map<String, String> jobContextMap = ImmutableMap.of("serverUrl", "http://serverurl:4440");
+		final Map<String, Map<String, String>> contextMap = ImmutableMap.of("job", jobContextMap, "option", optionContextMap);
+
+		final Map<String, ? extends Object> executionData = ImmutableMap.of("context", contextMap, "status", "running", "project", "projectName", "id", "executionId");
+
+		final CharSequence downloadOptionPart = (CharSequence) callStaticMethod(SlackPlugin.class, "getDownloadOptionPart", executionData);
+
+		Assertions.assertThat(downloadOptionPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-download-running-with-options.txt")));
+	}
 
 	@Test
 	public void testGetDurationPartEmptyExecutionData() throws Exception {
