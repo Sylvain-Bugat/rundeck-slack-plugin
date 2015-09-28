@@ -513,27 +513,27 @@ public class SlackPluginTest {
 	@Test
 	public void testFormatDuration() {
 
-		Assertions.assertThat(SlackPlugin.formatDuration(0l)).isEqualTo("0s");
-		Assertions.assertThat(SlackPlugin.formatDuration(999l)).isEqualTo("0s");
+		Assertions.assertThat(SlackPlugin.formatDuration(0L)).isEqualTo("0s");
+		Assertions.assertThat(SlackPlugin.formatDuration(999L)).isEqualTo("0s");
 
-		for (long seconds = 1; seconds < 60; seconds++) {
-			Assertions.assertThat(SlackPlugin.formatDuration(seconds * 1_000l)).isEqualTo(seconds + "s");
-			Assertions.assertThat(SlackPlugin.formatDuration(seconds * 1_000l + 999l)).isEqualTo(seconds + "s");
+		for (long seconds = 1L; seconds < 60L; seconds++) {
+			Assertions.assertThat(SlackPlugin.formatDuration(seconds * 1_000L)).isEqualTo(seconds + "s");
+			Assertions.assertThat(SlackPlugin.formatDuration(seconds * 1_000L + 999L)).isEqualTo(seconds + "s");
 		}
 
-		for (long minutes = 1; minutes < 60; minutes++) {
-			Assertions.assertThat(SlackPlugin.formatDuration(minutes * 60_000l)).isEqualTo(minutes + "m00s");
-			Assertions.assertThat(SlackPlugin.formatDuration(minutes * 60_000l + 59_999l)).isEqualTo(minutes + "m59s");
+		for (long minutes = 1L; minutes < 60L; minutes++) {
+			Assertions.assertThat(SlackPlugin.formatDuration(minutes * 60_000L)).isEqualTo(minutes + "m00s");
+			Assertions.assertThat(SlackPlugin.formatDuration(minutes * 60_000L + 59_999L)).isEqualTo(minutes + "m59s");
 		}
 
-		for (long hours = 1; hours < 24; hours++) {
-			Assertions.assertThat(SlackPlugin.formatDuration(hours * 3_600_000l)).isEqualTo(hours + "h00m");
-			Assertions.assertThat(SlackPlugin.formatDuration(hours * 3_600_000l + 3_599_999l)).isEqualTo(hours + "h59m");
+		for (long hours = 1L; hours < 24L; hours++) {
+			Assertions.assertThat(SlackPlugin.formatDuration(hours * 3_600_000L)).isEqualTo(hours + "h00m");
+			Assertions.assertThat(SlackPlugin.formatDuration(hours * 3_600_000L + 3_599_999L)).isEqualTo(hours + "h59m");
 		}
 
-		for (long days = 1; days < 100; days++) {
-			Assertions.assertThat(SlackPlugin.formatDuration(days * 86_400_000l)).isEqualTo(days + "d00h");
-			Assertions.assertThat(SlackPlugin.formatDuration(days * 86_400_000l + 86_399_999l)).isEqualTo(days + "d23h");
+		for (long days = 1L; days < 100L; days++) {
+			Assertions.assertThat(SlackPlugin.formatDuration(days * 86_400_000L)).isEqualTo(days + "d00h");
+			Assertions.assertThat(SlackPlugin.formatDuration(days * 86_400_000L + 86_399_999L)).isEqualTo(days + "d23h");
 		}
 	}
 	

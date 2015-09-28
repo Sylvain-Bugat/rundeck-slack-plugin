@@ -81,7 +81,7 @@ public class SlackPlugin implements NotificationPlugin {
 			connection.setDoOutput(true);
 
 			// Send the WebHook message
-			final String messagePayload =  getMessage(trigger, executionData);
+			final String messagePayload = getMessage(trigger, executionData);
 			try (final DataOutputStream dataOutputStream = new DataOutputStream(connection.getOutputStream())) {
 				dataOutputStream.writeBytes("payload=" + URLEncoder.encode(messagePayload, StandardCharsets.UTF_8.name()));
 			}
@@ -98,14 +98,14 @@ public class SlackPlugin implements NotificationPlugin {
 				}
 				return false;
 			}
-		} catch (final MalformedURLException e) {
+		}catch (final MalformedURLException e) {
 			logger.log(Level.SEVERE, "Malformed Slack WebHook URL {0} when sending {1} job notification with trigger {2}", new Object[] { slackIncomingWebHookUrl, jobName, trigger });
 			return false;
-		} catch (final IOException e) {
+		}catch (final IOException e) {
 			logger.log(Level.SEVERE, e.getMessage());
 			logger.log(Level.FINE, e.getMessage(), e);
 			return false;
-		} finally {
+		}finally {
 			if (null != connection) {
 				connection.disconnect();
 			}
