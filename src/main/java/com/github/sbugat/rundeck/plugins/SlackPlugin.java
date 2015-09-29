@@ -318,7 +318,7 @@ public class SlackPlugin implements NotificationPlugin {
 		titleBuilder.append(executionData.get("project"));
 		titleBuilder.append("> - ");
 
-		if (null != jobMap.get("group")) {
+		if (null != jobMap.get("group") && !jobMap.get("group").isEmpty()) {
 
 			final StringBuilder rootGroups = new StringBuilder();
 			for (final String group : jobMap.get("group").split("/")) {
