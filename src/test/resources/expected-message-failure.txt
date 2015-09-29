@@ -1,1 +1,1 @@
-{"attachments":[{"title":,"text":"","color":"danger"}]}
+{"attachments":[{"title":"","text":"","color":"danger"}]}
