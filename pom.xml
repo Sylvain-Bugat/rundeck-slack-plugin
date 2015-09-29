@@ -58,8 +58,13 @@
 		<maven.version>3.0.5</maven.version>
 
 		<!-- JDK/JRE version -->
-		<maven.compiler.source>1.6</maven.compiler.source>
-		<maven.compiler.target>1.6</maven.compiler.target>
+		<maven.compiler.source>6</maven.compiler.source>
+		<maven.compiler.target>6</maven.compiler.target>
+		<maven.compiler.fork>true</maven.compiler.fork>
+		<maven.compiler.compilerVersion>${maven.compiler.source}</maven.compiler.compilerVersion>
+		<maven.compiler.optimize>true</maven.compiler.optimize>
+		<maven.compiler.showDeprecation>true</maven.compiler.showDeprecation>
+		<maven.compiler.showWarnings>true</maven.compiler.showWarnings>
 
 		<!-- Rundeck version -->
 		<rundeck.version>2.5.3</rundeck.version>
@@ -148,9 +153,6 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>${maven.plugincompiler.version}</version>
 				<configuration>
-					<compilerVersion>${maven.compiler.source}</compilerVersion>
-					<source>${maven.compiler.source}</source>
-					<target>${maven.compiler.target}</target>
 					<compilerArgs>
 						<arg>-Xlint</arg>
 					</compilerArgs>
@@ -248,12 +250,12 @@
 						<configuration>
 							<rules>
 								<requireJavaVersion>
-									<version>[${maven.compiler.source}.0,)</version>
+									<version>1.[${maven.compiler.source}.0,)</version>
 								</requireJavaVersion>
 								<requireMavenVersion>
 									<version>[${maven.version},)</version>
 								</requireMavenVersion>
-							</rules>    
+							</rules>
 						</configuration>
 					</execution>
 				</executions>
