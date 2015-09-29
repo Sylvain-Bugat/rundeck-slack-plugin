@@ -79,8 +79,15 @@ public class SlackPlugin implements NotificationPlugin {
 
 			// Send the WebHook message
 			final String messagePayload = getMessage(trigger, executionData);
-			try (final DataOutputStream dataOutputStream = new DataOutputStream(connection.getOutputStream())) {
+			DataOutputStream dataOutputStream = null;
+			try {
+				dataOutputStream = new DataOutputStream(connection.getOutputStream());
 				dataOutputStream.writeBytes("payload=" + URLEncoder.encode(messagePayload, StandardCharsets.UTF_8.name()));
+			}
+			finally {
+				if (null != dataOutputStream) {
+					dataOutputStream.close();
+				}
 			}
 
 			// Get the HTTP response code

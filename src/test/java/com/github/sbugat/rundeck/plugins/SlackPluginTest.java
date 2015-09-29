@@ -67,7 +67,7 @@ public class SlackPluginTest {
 		Mockito.doReturn(HttpURLConnection.HTTP_OK).when(connection).getResponseCode();
 		
 		final Map<String, String> jobMap = ImmutableMap.of("name", "jobname");
-		final Map<String, Object> executionDataMap = new HashMap<>();
+		final Map<String, Object> executionDataMap = new HashMap<String, Object>();
 		executionDataMap.put("job", jobMap);
 		final Map<String, Object> executionData = ImmutableMap.copyOf(executionDataMap);
 		
@@ -125,7 +125,7 @@ public class SlackPluginTest {
 		Mockito.doReturn(HttpURLConnection.HTTP_NOT_FOUND).when(connection).getResponseCode();
 		
 		final Map<String, String> jobMap = ImmutableMap.of("name", "jobname");
-		final Map<String, Object> executionDataMap = new HashMap<>();
+		final Map<String, Object> executionDataMap = new HashMap<String, Object>();
 		executionDataMap.put("job", jobMap);
 		final Map<String, Object> executionData = ImmutableMap.copyOf(executionDataMap);
 		
@@ -157,7 +157,7 @@ public class SlackPluginTest {
 		Mockito.doReturn(HttpURLConnection.HTTP_INTERNAL_ERROR).when(connection).getResponseCode();
 		
 		final Map<String, String> jobMap = ImmutableMap.of("name", "jobname");
-		final Map<String, Object> executionDataMap = new HashMap<>();
+		final Map<String, Object> executionDataMap = new HashMap<String, Object>();
 		executionDataMap.put("job", jobMap);
 		final Map<String, Object> executionData = ImmutableMap.copyOf(executionDataMap);
 		
@@ -213,7 +213,7 @@ public class SlackPluginTest {
 		final List<String> failedNodeList = ImmutableList.of(NODE_1, NODE_2);
 		final Map<String, Integer> nodeStatus = ImmutableMap.of(TOTAL, Integer.valueOf(2));
 		
-		final Map<String, Object> executionDataMap = new HashMap<>();
+		final Map<String, Object> executionDataMap = new HashMap<String, Object>();
 		executionDataMap.put("context", contextMap);
 		executionDataMap.put("job", jobMap);
 		executionDataMap.put("href", "http://executionnurl:4440");
@@ -483,7 +483,7 @@ public class SlackPluginTest {
 		final Map<String, Map<String, String>> contextMap = ImmutableMap.of("job", jobContextMap);
 		final Map<String, String> jobMap = ImmutableMap.of("href", "http://jobnurl:4440", "name", "jobname");
 
-		final Map<String, Object> executionDataMap = new HashMap<>();
+		final Map<String, Object> executionDataMap = new HashMap<String, Object>();
 		executionDataMap.put("context", contextMap);
 		executionDataMap.put("job", jobMap);
 		executionDataMap.put("href", "http://executionnurl:4440");
@@ -504,7 +504,7 @@ public class SlackPluginTest {
 		final Map<String, Map<String, String>> contextMap = ImmutableMap.of("job", jobContextMap);
 		final Map<String, String> jobMap = ImmutableMap.of("href", "http://jobnurl:4440", "name", "jobname", "group", "groupName/subGroupName/subSubGroupName");
 
-		final Map<String, Object> executionDataMap = new HashMap<>();
+		final Map<String, Object> executionDataMap = new HashMap<String, Object>();
 		executionDataMap.put("context", contextMap);
 		executionDataMap.put("job", jobMap);
 		executionDataMap.put("href", "http://executionnurl:4440");
@@ -525,7 +525,7 @@ public class SlackPluginTest {
 		final Map<String, Map<String, String>> contextMap = ImmutableMap.of("job", jobContextMap);
 		final Map<String, String> jobMap = ImmutableMap.of("href", "http://jobnurl:4440", "name", "jobname", "group", "groupName/subGroupName/subSubGroupName");
 
-		final Map<String, Object> executionDataMap = new HashMap<>();
+		final Map<String, Object> executionDataMap = new HashMap<String, Object>();
 		executionDataMap.put("context", contextMap);
 		executionDataMap.put("job", jobMap);
 		executionDataMap.put("href", "http://executionnurl:4440");
@@ -674,23 +674,23 @@ public class SlackPluginTest {
 		Assertions.assertThat(SlackPlugin.formatDuration(999L)).isEqualTo("0s");
 
 		for (long seconds = 1L; seconds < 60L; seconds++) {
-			Assertions.assertThat(SlackPlugin.formatDuration(seconds * 1_000L)).isEqualTo(seconds + "s");
-			Assertions.assertThat(SlackPlugin.formatDuration(seconds * 1_000L + 999L)).isEqualTo(seconds + "s");
+			Assertions.assertThat(SlackPlugin.formatDuration(seconds * 1000L)).isEqualTo(seconds + "s");
+			Assertions.assertThat(SlackPlugin.formatDuration(seconds * 1000L + 999L)).isEqualTo(seconds + "s");
 		}
 
 		for (long minutes = 1L; minutes < 60L; minutes++) {
-			Assertions.assertThat(SlackPlugin.formatDuration(minutes * 60_000L)).isEqualTo(minutes + "m00s");
-			Assertions.assertThat(SlackPlugin.formatDuration(minutes * 60_000L + 59_999L)).isEqualTo(minutes + "m59s");
+			Assertions.assertThat(SlackPlugin.formatDuration(minutes * 60000L)).isEqualTo(minutes + "m00s");
+			Assertions.assertThat(SlackPlugin.formatDuration(minutes * 60000L + 59999L)).isEqualTo(minutes + "m59s");
 		}
 
 		for (long hours = 1L; hours < 24L; hours++) {
-			Assertions.assertThat(SlackPlugin.formatDuration(hours * 3_600_000L)).isEqualTo(hours + "h00m");
-			Assertions.assertThat(SlackPlugin.formatDuration(hours * 3_600_000L + 3_599_999L)).isEqualTo(hours + "h59m");
+			Assertions.assertThat(SlackPlugin.formatDuration(hours * 3600000L)).isEqualTo(hours + "h00m");
+			Assertions.assertThat(SlackPlugin.formatDuration(hours * 3600000L + 3599999L)).isEqualTo(hours + "h59m");
 		}
 
 		for (long days = 1L; days < 100L; days++) {
-			Assertions.assertThat(SlackPlugin.formatDuration(days * 86_400_000L)).isEqualTo(days + "d00h");
-			Assertions.assertThat(SlackPlugin.formatDuration(days * 86_400_000L + 86_399_999L)).isEqualTo(days + "d23h");
+			Assertions.assertThat(SlackPlugin.formatDuration(days * 86400000L)).isEqualTo(days + "d00h");
+			Assertions.assertThat(SlackPlugin.formatDuration(days * 86400000L + 86399999L)).isEqualTo(days + "d23h");
 		}
 	}
 	
