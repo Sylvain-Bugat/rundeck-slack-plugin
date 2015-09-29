@@ -335,9 +335,6 @@ public class SlackPlugin implements NotificationPlugin {
 				titleBuilder.append('|');
 				titleBuilder.append(group);
 				titleBuilder.append(">/");
-
-				rootGroups.append(group);
-				rootGroups.append('/');
 			}
 		}
 
