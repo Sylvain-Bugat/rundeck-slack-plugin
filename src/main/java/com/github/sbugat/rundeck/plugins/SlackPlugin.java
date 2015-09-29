@@ -314,6 +314,7 @@ public class SlackPlugin implements NotificationPlugin {
 		titleBuilder.append(jobContextMap.get("serverUrl"));
 		titleBuilder.append('/');
 		titleBuilder.append(executionData.get("project"));
+		titleBuilder.append("/jobs");
 		titleBuilder.append('|');
 		titleBuilder.append(executionData.get("project"));
 		titleBuilder.append("> - ");
