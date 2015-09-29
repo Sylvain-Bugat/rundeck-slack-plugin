@@ -98,7 +98,7 @@ public class SlackPlugin implements NotificationPlugin {
 					logger.log(Level.SEVERE, "Invalid Slack WebHook URL {0} when sending {1} job notification with trigger {2}", new Object[] { slackIncomingWebHookUrl, jobName, trigger });
 				} else {
 					logger.log(Level.SEVERE, "Error sending {0} job notification with trigger {1}, http code: {2}", new Object[] { jobName, trigger, httpResponseCode });
-					logger.log(Level.SEVERE, "Error sending {0} job notification with trigger {1}, http code: {2}, payload:{3}", new Object[] { jobName, trigger, httpResponseCode, messagePayload });
+					logger.log(Level.FINE, "Error sending {0} job notification with trigger {1}, http code: {2}, payload:{3}", new Object[] { jobName, trigger, httpResponseCode, messagePayload });
 				}
 				return false;
 			}
