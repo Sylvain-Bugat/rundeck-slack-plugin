@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.List;
@@ -31,6 +30,8 @@ import com.dtolabs.rundeck.plugins.notification.NotificationPlugin;
 @PluginDescription(title = "Slack")
 public class SlackPlugin implements NotificationPlugin {
 
+	private static final String UTF_8 = "UTF-8";
+	
 	static final String SLACK_SUCCESS_COLOR = "good";
 	static final String SLACK_FAILED_COLOR = "danger";
 
@@ -72,7 +73,7 @@ public class SlackPlugin implements NotificationPlugin {
 			connection = uRLTools.openURLConnection(slackIncomingWebHookUrl);
 
 			connection.setRequestMethod("POST");
-			connection.setRequestProperty("charset", StandardCharsets.UTF_8.name());
+			connection.setRequestProperty("charset", UTF_8);
 			connection.setUseCaches(false);
 			connection.setDoInput(true);
 			connection.setDoOutput(true);
@@ -82,7 +83,7 @@ public class SlackPlugin implements NotificationPlugin {
 			DataOutputStream dataOutputStream = null;
 			try {
 				dataOutputStream = new DataOutputStream(connection.getOutputStream());
-				dataOutputStream.writeBytes("payload=" + URLEncoder.encode(messagePayload, StandardCharsets.UTF_8.name()));
+				dataOutputStream.writeBytes("payload=" + URLEncoder.encode(messagePayload, UTF_8));
 			}
 			finally {
 				if (null != dataOutputStream) {
