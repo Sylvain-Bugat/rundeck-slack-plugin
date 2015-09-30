@@ -119,54 +119,53 @@ public class SlackPlugin implements NotificationPlugin {
 	}
 	
 	/**
+	 * 
 	 * Return the complete message to send.
-	 *
+	 * 
+	 * @param trigger job trigger state
+	 * @param executionData data of the current execution state
 	 * @return complete message
 	 */
 	private String getMessage( final String trigger, @SuppressWarnings("rawtypes") final Map executionData ) {
 		
 		final StringBuilder messageBuilder = new StringBuilder();
 		messageBuilder.append('{');
-		messageBuilder.append( getOptions() );
-		messageBuilder.append( getAttachmentsPart(trigger, executionData) );
+		getOptions(messageBuilder);
+		getAttachmentsPart(messageBuilder, trigger, executionData);
 		messageBuilder.append('}');
 		
 		return messageBuilder.toString();
 	}
 
 	/**
-	 * Return a message with overridden options.
+	 * Add optional channel, username and emoji to the message.
 	 *
-	 * @return optional message with channel, username and emoji to use
+	 * @param messageBuilder StringBuilder to build the complete message
 	 */
-	private String getOptions() {
+	private void getOptions(final StringBuilder messageBuilder) {
 
-		final StringBuilder stringBuilder = new StringBuilder();
 		if (null != slackOverrideDefaultWebHookChannel) {
-			stringBuilder.append("\"channel\":");
-			stringBuilder.append("\"" + slackOverrideDefaultWebHookChannel + "\",");
+			messageBuilder.append("\"channel\":");
+			messageBuilder.append("\"" + slackOverrideDefaultWebHookChannel + "\",");
 		}
 		if (null != slackOverrideDefaultWebHookName) {
-			stringBuilder.append("\"username\":");
-			stringBuilder.append("\"" + slackOverrideDefaultWebHookName + "\",");
+			messageBuilder.append("\"username\":");
+			messageBuilder.append("\"" + slackOverrideDefaultWebHookName + "\",");
 		}
 		if (null != slackOverrideDefaultWebHookEmoji) {
-			stringBuilder.append("\"icon_emoji\":");
-			stringBuilder.append("\"" + slackOverrideDefaultWebHookEmoji + "\",");
+			messageBuilder.append("\"icon_emoji\":");
+			messageBuilder.append("\"" + slackOverrideDefaultWebHookEmoji + "\",");
 		}
-
-		return stringBuilder.toString();
 	}
 
 	/**
-	 * Return a Slack message with the job execution data.
+	 * Add job execution data to the message.
 	 *
+	 * @param messageBuilder StringBuilder to build the complete message
 	 * @param trigger execution status
 	 * @param executionData current execution state
-	 *
-	 * @return attachments part
 	 */
-	private static CharSequence getAttachmentsPart(final String trigger, @SuppressWarnings("rawtypes") final Map executionData) {
+	private static void getAttachmentsPart(final StringBuilder messageBuilder, final String trigger, @SuppressWarnings("rawtypes") final Map executionData) {
 
 		// Success and starting execution are good(green)
 		final String statusColor;
@@ -177,35 +176,35 @@ public class SlackPlugin implements NotificationPlugin {
 		}
 
 		// Attachment begin and title
-		final StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("\"attachments\":[");
-		stringBuilder.append("{");
-		stringBuilder.append("\"title\":\"" + getTitlePart(executionData) + "\",");
-		stringBuilder.append("\"text\":\"" + getDurationPart(executionData) + getDownloadOptionPart(executionData) + "\",");
-		stringBuilder.append("\"color\":\"" + statusColor + "\"");
+		messageBuilder.append("\"attachments\":[");
+		messageBuilder.append("{");
+		messageBuilder.append("\"title\":\"");
+		getTitlePart(messageBuilder, executionData);
+		messageBuilder.append("\",");
+		messageBuilder.append("\"text\":\"");
+		getDurationPart(messageBuilder, executionData);
+		getDownloadOptionPart(messageBuilder, executionData);
+		messageBuilder.append("\",");
+		messageBuilder.append("\"color\":\"" + statusColor + "\"");
 
 		// Job options section
-		stringBuilder.append(getJobOptionsPart(executionData));
+		messageBuilder.append(getJobOptionsPart(executionData));
 
-		stringBuilder.append('}');
+		messageBuilder.append('}');
 
 		// Failed nodes section
-		stringBuilder.append(getFailedNodesAttachment(executionData, statusColor));
+		messageBuilder.append(getFailedNodesAttachment(executionData, statusColor));
 
-		stringBuilder.append(']');
-
-		return stringBuilder;
+		messageBuilder.append(']');
 	}
 
-	private static CharSequence getDownloadOptionPart(@SuppressWarnings("rawtypes") final Map executionData) {
-
-		final StringBuilder downloadOptionBuilder = new StringBuilder();
+	private static void getDownloadOptionPart(final StringBuilder downloadOptionBuilder, @SuppressWarnings("rawtypes") final Map executionData) {
 
 		// Context map containing additional information
 		@SuppressWarnings("unchecked")
 		final Map<String, Map<String, String>> contextMap = (Map<String, Map<String, String>>) executionData.get("context");
 		if (null == contextMap) {
-			return downloadOptionBuilder;
+			return;
 		}
 
 		final Map<String, String> jobContextMap = contextMap.get("job");
@@ -227,17 +226,13 @@ public class SlackPlugin implements NotificationPlugin {
 				downloadOptionBuilder.append(", job options:");
 			}
 		}
-
-		return downloadOptionBuilder;
 	}
 
-	private static CharSequence getDurationPart(@SuppressWarnings("rawtypes") final Map executionData) {
-
-		final StringBuilder durationBuilder = new StringBuilder();
+	private static void  getDurationPart(final StringBuilder durationBuilder, @SuppressWarnings("rawtypes") final Map executionData) {
 
 		final Long startTime = (Long) executionData.get("dateStartedUnixtime");
 		if (null == startTime) {
-			return durationBuilder;
+			return;
 		}
 
 		final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.getDefault());
@@ -271,30 +266,26 @@ public class SlackPlugin implements NotificationPlugin {
 				durationBuilder.append(')');
 			}
 		}
-
-		return durationBuilder;
 	}
 
-	private static CharSequence getTitlePart(@SuppressWarnings("rawtypes") final Map executionData) {
-
-		final StringBuilder titleBuilder = new StringBuilder();
+	private static void getTitlePart(final StringBuilder titleBuilder, @SuppressWarnings("rawtypes") final Map executionData) {
 
 		@SuppressWarnings("unchecked")
 		final Map<String, String> jobMap = (Map<String, String>) executionData.get("job");
 		if (null == jobMap) {
-			return titleBuilder;
+			return;
 		}
 
 		// Context map containing additional information
 		@SuppressWarnings("unchecked")
 		final Map<String, Map<String, String>> contextMap = (Map<String, Map<String, String>>) executionData.get("context");
 		if (null == contextMap) {
-			return titleBuilder;
+			return;
 		}
 
 		final Map<String, String> jobContextMap = contextMap.get("job");
 		if (null == jobContextMap) {
-			return titleBuilder;
+			return;
 		}
 
 		titleBuilder.append('<');
@@ -351,8 +342,6 @@ public class SlackPlugin implements NotificationPlugin {
 		titleBuilder.append('|');
 		titleBuilder.append(jobMap.get("name"));
 		titleBuilder.append('>');
-
-		return titleBuilder;
 	}
 
 	private static CharSequence getJobOptionsPart(@SuppressWarnings("rawtypes") final Map executionData) {
