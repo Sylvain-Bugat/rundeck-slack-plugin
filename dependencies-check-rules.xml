@@ -49,5 +49,11 @@
 				<ignoreVersion type="regex">^99.0-does-not-exist$</ignoreVersion>
 			</ignoreVersions>
 		</rule>
+		<!-- Ignore xml-apis 2.0.* version -->
+		<rule groupId="xml-apis">
+			<ignoreVersions>
+				<ignoreVersion type="regex">^2\.0\..*</ignoreVersion>
+			</ignoreVersions>
+		</rule>
 	</rules>
 </ruleset>
