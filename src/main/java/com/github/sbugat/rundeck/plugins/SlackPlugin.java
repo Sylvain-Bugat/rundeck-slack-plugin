@@ -30,7 +30,7 @@ import com.dtolabs.rundeck.plugins.notification.NotificationPlugin;
 @PluginDescription(title = "Slack")
 public class SlackPlugin implements NotificationPlugin {
 
-	private static final String UTF_8 = "UTF-8";
+	static final String UTF_8 = "UTF-8";
 	
 	static final String SLACK_SUCCESS_COLOR = "good";
 	static final String SLACK_FAILED_COLOR = "danger";

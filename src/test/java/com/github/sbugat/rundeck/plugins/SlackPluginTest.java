@@ -2,15 +2,16 @@ package com.github.sbugat.rundeck.plugins;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 import org.assertj.core.api.Assertions;
 import org.junit.After;
@@ -73,7 +74,7 @@ public class SlackPluginTest {
 		
 		Assertions.assertThat( slackPlugin.postNotification("success", executionData, null) ).isTrue();
 		
-		Assertions.assertThat(byteArrayOutputStream.toString(StandardCharsets.UTF_8.name())).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-notification-ok.txt")));
+		Assertions.assertThat(byteArrayOutputStream.toString(SlackPlugin.UTF_8)).isEqualTo(getFileContent("expected-notification-ok.txt"));
 		
 		//Verify URLTools call
 		Mockito.verify(uRLTools).openURLConnection(null);
@@ -81,7 +82,7 @@ public class SlackPluginTest {
 		//Verify connection calls
 		Mockito.verify(connection).getOutputStream();
 		Mockito.verify(connection).setRequestMethod("POST");
-		Mockito.verify(connection).setRequestProperty("charset", StandardCharsets.UTF_8.name());
+		Mockito.verify(connection).setRequestProperty("charset", SlackPlugin.UTF_8);
 		Mockito.verify(connection).setUseCaches(false);
 		Mockito.verify(connection).setDoInput(true);
 		Mockito.verify(connection).setDoOutput(true);
@@ -131,7 +132,7 @@ public class SlackPluginTest {
 		
 		Assertions.assertThat( slackPlugin.postNotification("success", executionData, null) ).isFalse();
 		
-		Assertions.assertThat(byteArrayOutputStream.toString(StandardCharsets.UTF_8.name())).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-notification-ok.txt")));
+		Assertions.assertThat(byteArrayOutputStream.toString(SlackPlugin.UTF_8)).isEqualTo(getFileContent("expected-notification-ok.txt"));
 		
 		//Verify URLTools call
 		Mockito.verify(uRLTools).openURLConnection(null);
@@ -139,7 +140,7 @@ public class SlackPluginTest {
 		//Verify connection calls
 		Mockito.verify(connection).getOutputStream();
 		Mockito.verify(connection).setRequestMethod("POST");
-		Mockito.verify(connection).setRequestProperty("charset", StandardCharsets.UTF_8.name());
+		Mockito.verify(connection).setRequestProperty("charset", SlackPlugin.UTF_8);
 		Mockito.verify(connection).setUseCaches(false);
 		Mockito.verify(connection).setDoInput(true);
 		Mockito.verify(connection).setDoOutput(true);
@@ -163,7 +164,7 @@ public class SlackPluginTest {
 		
 		Assertions.assertThat( slackPlugin.postNotification("success", executionData, null) ).isFalse();
 		
-		Assertions.assertThat(byteArrayOutputStream.toString(StandardCharsets.UTF_8.name())).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-notification-ok.txt")));
+		Assertions.assertThat(byteArrayOutputStream.toString(SlackPlugin.UTF_8)).isEqualTo(getFileContent("expected-notification-ok.txt"));
 		
 		//Verify URLTools call
 		Mockito.verify(uRLTools).openURLConnection(null);
@@ -171,7 +172,7 @@ public class SlackPluginTest {
 		//Verify connection calls
 		Mockito.verify(connection).getOutputStream();
 		Mockito.verify(connection).setRequestMethod("POST");
-		Mockito.verify(connection).setRequestProperty("charset", StandardCharsets.UTF_8.name());
+		Mockito.verify(connection).setRequestProperty("charset", SlackPlugin.UTF_8);
 		Mockito.verify(connection).setUseCaches(false);
 		Mockito.verify(connection).setDoInput(true);
 		Mockito.verify(connection).setDoOutput(true);
@@ -185,7 +186,7 @@ public class SlackPluginTest {
 		final Map<String, Object> executionData = ImmutableMap.of();
 		
 		final String message = (String) callMethod(slackPlugin, "getMessage", "start", executionData );
-		Assertions.assertThat(message).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-message-start.txt")));
+		Assertions.assertThat(message).isEqualTo(getFileContent("expected-message-start.txt"));
 	}
 	
 	@Test
@@ -194,7 +195,7 @@ public class SlackPluginTest {
 		final Map<String, Object> executionData = ImmutableMap.of();
 		
 		final String message = (String) callMethod(slackPlugin, "getMessage", "failure", executionData );
-		Assertions.assertThat(message).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-message-failure.txt")));
+		Assertions.assertThat(message).isEqualTo(getFileContent("expected-message-failure.txt"));
 	}
 	
 	@Test
@@ -231,7 +232,7 @@ public class SlackPluginTest {
 		final Map<String, Object> executionData = ImmutableMap.copyOf(executionDataMap);
 		
 		final String message = (String) callMethod(slackPlugin, "getMessage", "failure", executionData );
-		Assertions.assertThat(message).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-message-complete.txt")));
+		Assertions.assertThat(message).isEqualTo(getFileContent("expected-message-complete.txt"));
 	}
 	
 	@Test
@@ -251,7 +252,7 @@ public class SlackPluginTest {
 		final StringBuilder optionsPart = new StringBuilder();
 		callMethod(slackPlugin, "getOptions", optionsPart);
 
-		Assertions.assertThat(optionsPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-option-channel.txt")));
+		Assertions.assertThat(optionsPart.toString()).isEqualTo(getFileContent("expected-option-channel.txt"));
 	}
 	
 	@Test
@@ -273,7 +274,7 @@ public class SlackPluginTest {
 		final StringBuilder optionsPart = new StringBuilder();
 		callMethod(slackPlugin, "getOptions", optionsPart);
 
-		Assertions.assertThat(optionsPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-option-name.txt")));
+		Assertions.assertThat(optionsPart.toString()).isEqualTo(getFileContent("expected-option-name.txt"));
 	}
 	
 	@Test
@@ -295,7 +296,7 @@ public class SlackPluginTest {
 		final StringBuilder optionsPart = new StringBuilder();
 		callMethod(slackPlugin, "getOptions", optionsPart);
 
-		Assertions.assertThat(optionsPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-option-emoji.txt")));
+		Assertions.assertThat(optionsPart.toString()).isEqualTo(getFileContent("expected-option-emoji.txt"));
 	}
 	
 	@Test
@@ -319,7 +320,7 @@ public class SlackPluginTest {
 		final StringBuilder optionsPart = new StringBuilder();
 		callMethod(slackPlugin, "getOptions", optionsPart);
 
-		Assertions.assertThat(optionsPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-option-all.txt")));
+		Assertions.assertThat(optionsPart.toString()).isEqualTo(getFileContent("expected-option-all.txt"));
 	}
 
 	@Test
@@ -359,7 +360,7 @@ public class SlackPluginTest {
 		final StringBuilder downloadOptionPart = new StringBuilder();
 		callStaticMethod(SlackPlugin.class, "getDownloadOptionPart", downloadOptionPart, executionData);
 
-		Assertions.assertThat(downloadOptionPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-download-failure.txt")));
+		Assertions.assertThat(downloadOptionPart.toString()).isEqualTo(getFileContent("expected-download-failure.txt"));
 	}
 
 	@Test
@@ -374,7 +375,7 @@ public class SlackPluginTest {
 		final StringBuilder downloadOptionPart = new StringBuilder();
 		callStaticMethod(SlackPlugin.class, "getDownloadOptionPart", downloadOptionPart, executionData);
 
-		Assertions.assertThat(downloadOptionPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-download-with-options.txt")));
+		Assertions.assertThat(downloadOptionPart.toString()).isEqualTo(getFileContent("expected-download-with-options.txt"));
 	}
 
 	@Test
@@ -402,7 +403,7 @@ public class SlackPluginTest {
 		final StringBuilder downloadOptionPart = new StringBuilder();
 		callStaticMethod(SlackPlugin.class, "getDownloadOptionPart", downloadOptionPart, executionData);
 
-		Assertions.assertThat(downloadOptionPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-download-running-with-options.txt")));
+		Assertions.assertThat(downloadOptionPart.toString()).isEqualTo(getFileContent("expected-download-running-with-options.txt"));
 	}
 
 	@Test
@@ -424,7 +425,7 @@ public class SlackPluginTest {
 		final StringBuilder durationPart = new StringBuilder();
 		callStaticMethod(SlackPlugin.class, "getDurationPart", durationPart, executionData);
 
-		Assertions.assertThat(durationPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-duration-only-start-date.txt")));
+		Assertions.assertThat(durationPart.toString()).isEqualTo(getFileContent("expected-duration-only-start-date.txt"));
 	}
 
 	@Test
@@ -435,7 +436,7 @@ public class SlackPluginTest {
 		final StringBuilder durationPart = new StringBuilder();
 		callStaticMethod(SlackPlugin.class, "getDurationPart", durationPart, executionData);
 
-		Assertions.assertThat(durationPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-duration-launched.txt")));
+		Assertions.assertThat(durationPart.toString()).isEqualTo(getFileContent("expected-duration-launched.txt"));
 	}
 
 	@Test
@@ -446,7 +447,7 @@ public class SlackPluginTest {
 		final StringBuilder durationPart = new StringBuilder();
 		callStaticMethod(SlackPlugin.class, "getDurationPart", durationPart, executionData);
 
-		Assertions.assertThat(durationPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-duration-aborted-bynone.txt")));
+		Assertions.assertThat(durationPart.toString()).isEqualTo(getFileContent("expected-duration-aborted-bynone.txt"));
 	}
 
 	@Test
@@ -457,7 +458,7 @@ public class SlackPluginTest {
 		final StringBuilder durationPart = new StringBuilder();
 		callStaticMethod(SlackPlugin.class, "getDurationPart", durationPart, executionData);
 
-		Assertions.assertThat(durationPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-duration-aborted.txt")));
+		Assertions.assertThat(durationPart.toString()).isEqualTo(getFileContent("expected-duration-aborted.txt"));
 	}
 
 	@Test
@@ -468,7 +469,7 @@ public class SlackPluginTest {
 		final StringBuilder durationPart = new StringBuilder();
 		callStaticMethod(SlackPlugin.class, "getDurationPart", durationPart, executionData);
 
-		Assertions.assertThat(durationPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-duration-ended.txt")));
+		Assertions.assertThat(durationPart.toString()).isEqualTo(getFileContent("expected-duration-ended.txt"));
 	}
 
 	@Test
@@ -479,7 +480,7 @@ public class SlackPluginTest {
 		final StringBuilder durationPart = new StringBuilder();
 		callStaticMethod(SlackPlugin.class, "getDurationPart", durationPart, executionData);
 
-		Assertions.assertThat(durationPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-duration-timedout.txt")));
+		Assertions.assertThat(durationPart.toString()).isEqualTo(getFileContent("expected-duration-timedout.txt"));
 	}
 
 	@Test
@@ -532,7 +533,7 @@ public class SlackPluginTest {
 		final StringBuilder titlePart = new StringBuilder();
 		callStaticMethod(SlackPlugin.class, "getTitlePart", titlePart, executionData);
 
-		Assertions.assertThat(titlePart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-null-title.txt")));
+		Assertions.assertThat(titlePart.toString()).isEqualTo(getFileContent("expected-null-title.txt"));
 	}
 
 	@Test
@@ -554,7 +555,7 @@ public class SlackPluginTest {
 		final StringBuilder titlePart = new StringBuilder();
 		callStaticMethod(SlackPlugin.class, "getTitlePart", titlePart, executionData);
 
-		Assertions.assertThat(titlePart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-running-nogroup-title.txt")));
+		Assertions.assertThat(titlePart.toString()).isEqualTo(getFileContent("expected-running-nogroup-title.txt"));
 	}
 
 	@Test
@@ -576,7 +577,7 @@ public class SlackPluginTest {
 		final StringBuilder titlePart = new StringBuilder();
 		callStaticMethod(SlackPlugin.class, "getTitlePart", titlePart, executionData);
 
-		Assertions.assertThat(titlePart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-aborted-bynone-group-title.txt")));
+		Assertions.assertThat(titlePart.toString()).isEqualTo(getFileContent("expected-aborted-bynone-group-title.txt"));
 	}
 
 	@Test
@@ -599,7 +600,7 @@ public class SlackPluginTest {
 		final StringBuilder titlePart = new StringBuilder();
 		callStaticMethod(SlackPlugin.class, "getTitlePart", titlePart, executionData);
 
-		Assertions.assertThat(titlePart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-aborted-group-title.txt")));
+		Assertions.assertThat(titlePart.toString()).isEqualTo(getFileContent("expected-aborted-group-title.txt"));
 	}
 
 	@Test
@@ -633,7 +634,7 @@ public class SlackPluginTest {
 
 		final CharSequence jobOptionsPart = (CharSequence) callStaticMethod(SlackPlugin.class, "getJobOptionsPart", executionData);
 
-		Assertions.assertThat(jobOptionsPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-1option-list.txt")));
+		Assertions.assertThat(jobOptionsPart.toString()).isEqualTo(getFileContent("expected-1option-list.txt"));
 	}
 
 	@Test
@@ -647,7 +648,7 @@ public class SlackPluginTest {
 
 		final CharSequence jobOptionsPart = (CharSequence) callStaticMethod(SlackPlugin.class, "getJobOptionsPart", executionData);
 
-		Assertions.assertThat(jobOptionsPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-2options-list.txt")));
+		Assertions.assertThat(jobOptionsPart.toString()).isEqualTo(getFileContent("expected-2options-list.txt"));
 	}
 
 	@Test
@@ -662,7 +663,7 @@ public class SlackPluginTest {
 
 		final CharSequence jobOptionsPart = (CharSequence) callStaticMethod(SlackPlugin.class, "getJobOptionsPart", executionData);
 
-		Assertions.assertThat(jobOptionsPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-1secureoption-list.txt")));
+		Assertions.assertThat(jobOptionsPart.toString()).isEqualTo(getFileContent("expected-1secureoption-list.txt"));
 	}
 
 	@Test
@@ -677,7 +678,7 @@ public class SlackPluginTest {
 
 		final CharSequence jobOptionsPart = (CharSequence) callStaticMethod(SlackPlugin.class, "getJobOptionsPart", executionData);
 
-		Assertions.assertThat(jobOptionsPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-2secureoptions-list.txt")));
+		Assertions.assertThat(jobOptionsPart.toString()).isEqualTo(getFileContent("expected-2secureoptions-list.txt"));
 	}
 
 	@Test
@@ -726,7 +727,7 @@ public class SlackPluginTest {
 
 		final CharSequence failedNodesAttachment = (CharSequence) callStaticMethod(SlackPlugin.class, "getFailedNodesAttachment", executionData, SlackPlugin.SLACK_SUCCESS_COLOR);
 
-		Assertions.assertThat(failedNodesAttachment.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-2failed-nodes-list.txt")));
+		Assertions.assertThat(failedNodesAttachment.toString()).isEqualTo(getFileContent("expected-2failed-nodes-list.txt"));
 	}
 
 	@Test
@@ -857,5 +858,25 @@ public class SlackPluginTest {
 		}
 
 		throw new NoSuchMethodException(methodName);
+	}
+	
+	private String getFileContent( final String fileName ) throws IOException {
+	        
+		final InputStream inputStream = getClass().getClassLoader().getResourceAsStream(fileName);
+		if( null == inputStream ) {
+			return "";
+		}
+		
+		Scanner scanner = null;
+		try {
+			scanner = new Scanner(inputStream).useDelimiter("\\A");
+			return scanner.hasNext() ? scanner.next() : "";
+		}
+		finally {
+			if( null != scanner ) {
+				scanner.close();
+			}
+			inputStream.close();
+		}
 	}
 }
