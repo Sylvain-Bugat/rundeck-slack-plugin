@@ -255,6 +255,17 @@ public class SlackPluginTest {
 	}
 	
 	@Test
+	public void testGetOptionsEmptyChannel() throws Exception {
+
+		setField(slackPlugin, "slackOverrideDefaultWebHookChannel", "");
+		
+		final StringBuilder optionsPart = new StringBuilder();
+		callMethod(slackPlugin, "getOptions", optionsPart);
+
+		Assertions.assertThat(optionsPart).isEmpty();
+	}
+	
+	@Test
 	public void testGetOptionsWebHookName() throws Exception {
 
 		setField(slackPlugin, "slackOverrideDefaultWebHookName", "HAL");
@@ -266,6 +277,17 @@ public class SlackPluginTest {
 	}
 	
 	@Test
+	public void testGetOptionsEmptyWebHookName() throws Exception {
+
+		setField(slackPlugin, "slackOverrideDefaultWebHookName", "");
+		
+		final StringBuilder optionsPart = new StringBuilder();
+		callMethod(slackPlugin, "getOptions", optionsPart);
+
+		Assertions.assertThat(optionsPart).isEmpty();
+	}
+	
+	@Test
 	public void testGetOptionsEmoji() throws Exception {
 
 		setField(slackPlugin, "slackOverrideDefaultWebHookEmoji", ":cow:");
@@ -274,6 +296,17 @@ public class SlackPluginTest {
 		callMethod(slackPlugin, "getOptions", optionsPart);
 
 		Assertions.assertThat(optionsPart.toString()).isEqualTo(Assertions.contentOf(getClass().getClassLoader().getResource("expected-option-emoji.txt")));
+	}
+	
+	@Test
+	public void testGetOptionsEmptyEmoji() throws Exception {
+
+		setField(slackPlugin, "slackOverrideDefaultWebHookEmoji", "");
+		
+		final StringBuilder optionsPart = new StringBuilder();
+		callMethod(slackPlugin, "getOptions", optionsPart);
+
+		Assertions.assertThat(optionsPart).isEmpty();
 	}
 	
 	@Test

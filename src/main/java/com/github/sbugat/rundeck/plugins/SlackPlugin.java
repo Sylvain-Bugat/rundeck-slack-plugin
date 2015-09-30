@@ -144,15 +144,15 @@ public class SlackPlugin implements NotificationPlugin {
 	 */
 	private void getOptions(final StringBuilder messageBuilder) {
 
-		if (null != slackOverrideDefaultWebHookChannel) {
+		if (null != slackOverrideDefaultWebHookChannel && !slackOverrideDefaultWebHookChannel.isEmpty()) {
 			messageBuilder.append("\"channel\":");
 			messageBuilder.append("\"" + slackOverrideDefaultWebHookChannel + "\",");
 		}
-		if (null != slackOverrideDefaultWebHookName) {
+		if (null != slackOverrideDefaultWebHookName && !slackOverrideDefaultWebHookName.isEmpty()) {
 			messageBuilder.append("\"username\":");
 			messageBuilder.append("\"" + slackOverrideDefaultWebHookName + "\",");
 		}
-		if (null != slackOverrideDefaultWebHookEmoji) {
+		if (null != slackOverrideDefaultWebHookEmoji && !slackOverrideDefaultWebHookEmoji.isEmpty()) {
 			messageBuilder.append("\"icon_emoji\":");
 			messageBuilder.append("\"" + slackOverrideDefaultWebHookEmoji + "\",");
 		}
