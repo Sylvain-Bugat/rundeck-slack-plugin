@@ -4,9 +4,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.List;
@@ -32,6 +30,8 @@ import com.dtolabs.rundeck.plugins.notification.NotificationPlugin;
 @PluginDescription(title = "Slack")
 public class SlackPlugin implements NotificationPlugin {
 
+	static final String UTF_8 = "UTF-8";
+	
 	static final String SLACK_SUCCESS_COLOR = "good";
 	static final String SLACK_FAILED_COLOR = "danger";
 
@@ -49,9 +49,7 @@ public class SlackPlugin implements NotificationPlugin {
 	@PluginProperty(title = "WebHook emoji", description = "Override default WebHook icon (:emoji:)")
 	private String slackOverrideDefaultWebHookEmoji;
 
-	public void ulrTest() throws MalformedURLException, IOException {
-		new URL(null).openConnection();
-	}
+	private URLTools uRLTools = new URLTools();
 
 	@Override
 	public boolean postNotification(final String trigger, @SuppressWarnings("rawtypes") final Map executionData, @SuppressWarnings("rawtypes") final Map config) {
@@ -72,18 +70,25 @@ public class SlackPlugin implements NotificationPlugin {
 		try {
 
 			// Prepare the connection to Slack
-			connection = (HttpURLConnection) new URL(slackIncomingWebHookUrl).openConnection();
+			connection = uRLTools.openURLConnection(slackIncomingWebHookUrl);
 
 			connection.setRequestMethod("POST");
-			connection.setRequestProperty("charset", StandardCharsets.UTF_8.name());
+			connection.setRequestProperty("charset", UTF_8);
 			connection.setUseCaches(false);
 			connection.setDoInput(true);
 			connection.setDoOutput(true);
 
 			// Send the WebHook message
-			final String messagePayload =  getMessage(trigger, executionData);
-			try (final DataOutputStream dataOutputStream = new DataOutputStream(connection.getOutputStream())) {
-				dataOutputStream.writeBytes("payload=" + URLEncoder.encode(messagePayload, StandardCharsets.UTF_8.name()));
+			final String messagePayload = getMessage(trigger, executionData);
+			DataOutputStream dataOutputStream = null;
+			try {
+				dataOutputStream = new DataOutputStream(connection.getOutputStream());
+				dataOutputStream.writeBytes("payload=" + URLEncoder.encode(messagePayload, UTF_8));
+			}
+			finally {
+				if (null != dataOutputStream) {
+					dataOutputStream.close();
+				}
 			}
 
 			// Get the HTTP response code
@@ -93,19 +98,19 @@ public class SlackPlugin implements NotificationPlugin {
 				if (HttpURLConnection.HTTP_NOT_FOUND == httpResponseCode) {
 					logger.log(Level.SEVERE, "Invalid Slack WebHook URL {0} when sending {1} job notification with trigger {2}", new Object[] { slackIncomingWebHookUrl, jobName, trigger });
 				} else {
-					logger.log(Level.SEVERE, "Error sending {0} job notification with trigger {1}, http code: {2}", new Object[] { jobName, trigger, connection.getResponseCode() });
-					logger.log(Level.FINE, "Error sending {0} job notification with trigger {1}, http code: {2}, payload:{3}", new Object[] { jobName, trigger, connection.getResponseCode(), messagePayload });
+					logger.log(Level.SEVERE, "Error sending {0} job notification with trigger {1}, http code: {2}", new Object[] { jobName, trigger, httpResponseCode });
+					logger.log(Level.FINE, "Error sending {0} job notification with trigger {1}, http code: {2}, payload:{3}", new Object[] { jobName, trigger, httpResponseCode, messagePayload });
 				}
 				return false;
 			}
-		} catch (final MalformedURLException e) {
+		}catch (final MalformedURLException e) {
 			logger.log(Level.SEVERE, "Malformed Slack WebHook URL {0} when sending {1} job notification with trigger {2}", new Object[] { slackIncomingWebHookUrl, jobName, trigger });
 			return false;
-		} catch (final IOException e) {
+		}catch (final IOException e) {
 			logger.log(Level.SEVERE, e.getMessage());
 			logger.log(Level.FINE, e.getMessage(), e);
 			return false;
-		} finally {
+		}finally {
 			if (null != connection) {
 				connection.disconnect();
 			}
@@ -115,54 +120,53 @@ public class SlackPlugin implements NotificationPlugin {
 	}
 	
 	/**
+	 * 
 	 * Return the complete message to send.
-	 *
+	 * 
+	 * @param trigger job trigger state
+	 * @param executionData data of the current execution state
 	 * @return complete message
 	 */
 	private String getMessage( final String trigger, @SuppressWarnings("rawtypes") final Map executionData ) {
 		
 		final StringBuilder messageBuilder = new StringBuilder();
 		messageBuilder.append('{');
-		messageBuilder.append( getOptions() );
-		messageBuilder.append( getAttachmentsPart(trigger, executionData) );
+		getOptions(messageBuilder);
+		getAttachmentsPart(messageBuilder, trigger, executionData);
 		messageBuilder.append('}');
 		
 		return messageBuilder.toString();
 	}
 
 	/**
-	 * Return a message with overridden options.
+	 * Add optional channel, username and emoji to the message.
 	 *
-	 * @return optional message with channel, username and emoji to use
+	 * @param messageBuilder StringBuilder to build the complete message
 	 */
-	private String getOptions() {
+	private void getOptions(final StringBuilder messageBuilder) {
 
-		final StringBuilder stringBuilder = new StringBuilder();
-		if (null != slackOverrideDefaultWebHookChannel) {
-			stringBuilder.append("\"channel\":");
-			stringBuilder.append("\"" + slackOverrideDefaultWebHookChannel + "\",");
+		if (null != slackOverrideDefaultWebHookChannel && !slackOverrideDefaultWebHookChannel.isEmpty()) {
+			messageBuilder.append("\"channel\":");
+			messageBuilder.append("\"" + slackOverrideDefaultWebHookChannel + "\",");
 		}
-		if (null != slackOverrideDefaultWebHookName) {
-			stringBuilder.append("\"username\":");
-			stringBuilder.append("\"" + slackOverrideDefaultWebHookName + "\",");
+		if (null != slackOverrideDefaultWebHookName && !slackOverrideDefaultWebHookName.isEmpty()) {
+			messageBuilder.append("\"username\":");
+			messageBuilder.append("\"" + slackOverrideDefaultWebHookName + "\",");
 		}
-		if (null != slackOverrideDefaultWebHookEmoji) {
-			stringBuilder.append("\"icon_emoji\":");
-			stringBuilder.append("\"" + slackOverrideDefaultWebHookEmoji + "\",");
+		if (null != slackOverrideDefaultWebHookEmoji && !slackOverrideDefaultWebHookEmoji.isEmpty()) {
+			messageBuilder.append("\"icon_emoji\":");
+			messageBuilder.append("\"" + slackOverrideDefaultWebHookEmoji + "\",");
 		}
-
-		return stringBuilder.toString();
 	}
 
 	/**
-	 * Return a Slack message with the job execution data.
+	 * Add job execution data to the message.
 	 *
+	 * @param messageBuilder StringBuilder to build the complete message
 	 * @param trigger execution status
 	 * @param executionData current execution state
-	 *
-	 * @return attachments part
 	 */
-	private static CharSequence getAttachmentsPart(final String trigger, @SuppressWarnings("rawtypes") final Map executionData) {
+	private static void getAttachmentsPart(final StringBuilder messageBuilder, final String trigger, @SuppressWarnings("rawtypes") final Map executionData) {
 
 		// Success and starting execution are good(green)
 		final String statusColor;
@@ -173,35 +177,35 @@ public class SlackPlugin implements NotificationPlugin {
 		}
 
 		// Attachment begin and title
-		final StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("\"attachments\":[");
-		stringBuilder.append("{");
-		stringBuilder.append("\"title\":" + getTitlePart(executionData) + ",");
-		stringBuilder.append("\"text\":\"" + getDurationPart(executionData) + getDownloadOptionPart(executionData) + "\",");
-		stringBuilder.append("\"color\":\"" + statusColor + "\"");
+		messageBuilder.append("\"attachments\":[");
+		messageBuilder.append("{");
+		messageBuilder.append("\"title\":\"");
+		getTitlePart(messageBuilder, executionData);
+		messageBuilder.append("\",");
+		messageBuilder.append("\"text\":\"");
+		getDurationPart(messageBuilder, executionData);
+		getDownloadOptionPart(messageBuilder, executionData);
+		messageBuilder.append("\",");
+		messageBuilder.append("\"color\":\"" + statusColor + "\"");
 
 		// Job options section
-		stringBuilder.append(getJobOptionsPart(executionData));
+		messageBuilder.append(getJobOptionsPart(executionData));
 
-		stringBuilder.append('}');
+		messageBuilder.append('}');
 
 		// Failed nodes section
-		stringBuilder.append(getFailedNodesAttachment(executionData, statusColor));
+		messageBuilder.append(getFailedNodesAttachment(executionData, statusColor));
 
-		stringBuilder.append(']');
-
-		return stringBuilder;
+		messageBuilder.append(']');
 	}
 
-	private static CharSequence getDownloadOptionPart(@SuppressWarnings("rawtypes") final Map executionData) {
-
-		final StringBuilder downloadOptionBuilder = new StringBuilder();
+	private static void getDownloadOptionPart(final StringBuilder downloadOptionBuilder, @SuppressWarnings("rawtypes") final Map executionData) {
 
 		// Context map containing additional information
 		@SuppressWarnings("unchecked")
 		final Map<String, Map<String, String>> contextMap = (Map<String, Map<String, String>>) executionData.get("context");
 		if (null == contextMap) {
-			return downloadOptionBuilder;
+			return;
 		}
 
 		final Map<String, String> jobContextMap = contextMap.get("job");
@@ -223,17 +227,13 @@ public class SlackPlugin implements NotificationPlugin {
 				downloadOptionBuilder.append(", job options:");
 			}
 		}
-
-		return downloadOptionBuilder;
 	}
 
-	private static CharSequence getDurationPart(@SuppressWarnings("rawtypes") final Map executionData) {
-
-		final StringBuilder durationBuilder = new StringBuilder();
+	private static void  getDurationPart(final StringBuilder durationBuilder, @SuppressWarnings("rawtypes") final Map executionData) {
 
 		final Long startTime = (Long) executionData.get("dateStartedUnixtime");
 		if (null == startTime) {
-			return durationBuilder;
+			return;
 		}
 
 		final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.getDefault());
@@ -267,30 +267,26 @@ public class SlackPlugin implements NotificationPlugin {
 				durationBuilder.append(')');
 			}
 		}
-
-		return durationBuilder;
 	}
 
-	private static CharSequence getTitlePart(@SuppressWarnings("rawtypes") final Map executionData) {
-
-		final StringBuilder titleBuilder = new StringBuilder();
+	private static void getTitlePart(final StringBuilder titleBuilder, @SuppressWarnings("rawtypes") final Map executionData) {
 
 		@SuppressWarnings("unchecked")
 		final Map<String, String> jobMap = (Map<String, String>) executionData.get("job");
 		if (null == jobMap) {
-			return titleBuilder;
+			return;
 		}
 
 		// Context map containing additional information
 		@SuppressWarnings("unchecked")
 		final Map<String, Map<String, String>> contextMap = (Map<String, Map<String, String>>) executionData.get("context");
 		if (null == contextMap) {
-			return titleBuilder;
+			return;
 		}
 
 		final Map<String, String> jobContextMap = contextMap.get("job");
 		if (null == jobContextMap) {
-			return titleBuilder;
+			return;
 		}
 
 		titleBuilder.append('<');
@@ -317,11 +313,12 @@ public class SlackPlugin implements NotificationPlugin {
 		titleBuilder.append(jobContextMap.get("serverUrl"));
 		titleBuilder.append('/');
 		titleBuilder.append(executionData.get("project"));
+		titleBuilder.append("/jobs");
 		titleBuilder.append('|');
 		titleBuilder.append(executionData.get("project"));
 		titleBuilder.append("> - ");
 
-		if (null != jobMap.get("group")) {
+		if (null != jobMap.get("group") && !jobMap.get("group").isEmpty()) {
 
 			final StringBuilder rootGroups = new StringBuilder();
 			for (final String group : jobMap.get("group").split("/")) {
@@ -338,9 +335,6 @@ public class SlackPlugin implements NotificationPlugin {
 				titleBuilder.append('|');
 				titleBuilder.append(group);
 				titleBuilder.append(">/");
-
-				rootGroups.append(group);
-				rootGroups.append('/');
 			}
 		}
 
@@ -349,8 +343,6 @@ public class SlackPlugin implements NotificationPlugin {
 		titleBuilder.append('|');
 		titleBuilder.append(jobMap.get("name"));
 		titleBuilder.append('>');
-
-		return titleBuilder;
 	}
 
 	private static CharSequence getJobOptionsPart(@SuppressWarnings("rawtypes") final Map executionData) {
