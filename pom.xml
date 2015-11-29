@@ -97,7 +97,7 @@
 		<maven.pluginenforcer.version>1.4.1</maven.pluginenforcer.version>
 		<maven.plugindeploy.version>2.8.2</maven.plugindeploy.version>
 		<maven.pluginassembly.version>2.6</maven.pluginassembly.version>
-		<maven.plugincoveralls.version>4.0.0</maven.plugincoveralls.version>
+		<maven.plugincoveralls.version>4.1.0</maven.plugincoveralls.version>
 		<maven.pluginjacoco.version>0.7.5.201505241946</maven.pluginjacoco.version>
 		<maven.pluginantrun.version>1.8</maven.pluginantrun.version>
 		<maven.plugindependency.version>2.10</maven.plugindependency.version>
