@@ -37,16 +37,16 @@ public class SlackPlugin implements NotificationPlugin {
 
 	private final Logger logger = Logger.getLogger(SlackPlugin.class.getName());
 
-	@PluginProperty(title = "Incoming WebHook URL", description = "Slack incoming WebHook URL", required = true)
+	@PluginProperty(title = "Incoming webhook URL", description = "Slack incoming webhook URL (required)", required = true)
 	private String slackIncomingWebHookUrl;
 
-	@PluginProperty(title = "WebHook channel", description = "Override default WebHook channel (#channel")
+	@PluginProperty(title = "Webhook channel", description = "Override default Slack webhook channel (#channel)")
 	private String slackOverrideDefaultWebHookChannel;
 
-	@PluginProperty(title = "WebHook name", description = "Override default WebHook name")
+	@PluginProperty(title = "Webhook name", description = "Override default Slack webhook name")
 	private String slackOverrideDefaultWebHookName;
 
-	@PluginProperty(title = "WebHook emoji", description = "Override default WebHook icon (:emoji:)")
+	@PluginProperty(title = "Webhook emoji", description = "Override default Slack webhook icon (:emoji:)")
 	private String slackOverrideDefaultWebHookEmoji;
 
 	private URLTools uRLTools = new URLTools();
