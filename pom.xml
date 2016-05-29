@@ -67,7 +67,7 @@
 		<maven.compiler.showWarnings>true</maven.compiler.showWarnings>
 
 		<!-- Rundeck version -->
-		<rundeck.version>2.4.2</rundeck.version>
+		<rundeck.version>2.6.7</rundeck.version>
 
 		<!-- Conflicting transitive dependencies version -->
 		<jsch.version>0.1.53</jsch.version>
