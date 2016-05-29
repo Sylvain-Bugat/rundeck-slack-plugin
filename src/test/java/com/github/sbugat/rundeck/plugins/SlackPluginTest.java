@@ -206,7 +206,7 @@ public class SlackPluginTest {
 		setField(slackPlugin, "slackOverrideDefaultWebHookEmoji", ":beer:");
 		
 		final Map<String, String> optionContextMap = ImmutableMap.of(OPTION_1, OPTION_1_VALUE);
-		final Map<String, String> jobContextMap = ImmutableMap.of("serverUrl", "http://serverurl:4440");
+		final Map<String, String> jobContextMap = ImmutableMap.of("serverUrl", "http://serverurl:4440/");
 		final Map<String, Map<String, String>> contextMap = ImmutableMap.of("job", jobContextMap, "option", optionContextMap);
 			
 		final Map<String, String> jobMap = ImmutableMap.of("href", "http://jobnurl:4440", "name", "jobname", "group", "groupName/subGroupName/subSubGroupName");
@@ -351,7 +351,7 @@ public class SlackPluginTest {
 	public void testGetDownloadOptionPartFailure() throws Exception {
 
 		final Map<String, String> optionContextMap = ImmutableMap.of();
-		final Map<String, String> jobContextMap = ImmutableMap.of("serverUrl", "http://serverurl:4440");
+		final Map<String, String> jobContextMap = ImmutableMap.of("serverUrl", "http://serverurl:4440/");
 
 		final Map<String, Map<String, String>> contextMap = ImmutableMap.of("job", jobContextMap, "option", optionContextMap);
 
@@ -367,7 +367,7 @@ public class SlackPluginTest {
 	public void testGetDownloadOptionPartAbortedWithOptions() throws Exception {
 
 		final Map<String, String> optionContextMap = ImmutableMap.of(OPTION_1, OPTION_1_VALUE);
-		final Map<String, String> jobContextMap = ImmutableMap.of("serverUrl", "http://serverurl:4440");
+		final Map<String, String> jobContextMap = ImmutableMap.of("serverUrl", "http://serverurl:4440/");
 		final Map<String, Map<String, String>> contextMap = ImmutableMap.of("job", jobContextMap, "option", optionContextMap);
 
 		final Map<String, ? extends Object> executionData = ImmutableMap.of("context", contextMap, "status", "aborted", "project", "projectName", "id", "executionId");
@@ -395,7 +395,7 @@ public class SlackPluginTest {
 	public void testGetDownloadOptionPartRunningWithOptions() throws Exception {
 
 		final Map<String, String> optionContextMap = ImmutableMap.of(OPTION_1, OPTION_1_VALUE);
-		final Map<String, String> jobContextMap = ImmutableMap.of("serverUrl", "http://serverurl:4440");
+		final Map<String, String> jobContextMap = ImmutableMap.of("serverUrl", "http://serverurl:4440/");
 		final Map<String, Map<String, String>> contextMap = ImmutableMap.of("job", jobContextMap, "option", optionContextMap);
 
 		final Map<String, ? extends Object> executionData = ImmutableMap.of("context", contextMap, "status", "running", "project", "projectName", "id", "executionId");
@@ -539,7 +539,7 @@ public class SlackPluginTest {
 	@Test
 	public void testGetTitlePartRunningWithoutGroup() throws Exception {
 
-		final Map<String, String> jobContextMap = ImmutableMap.of("serverUrl", "http://serverurl:4440");
+		final Map<String, String> jobContextMap = ImmutableMap.of("serverUrl", "http://serverurl:4440/");
 		final Map<String, Map<String, String>> contextMap = ImmutableMap.of("job", jobContextMap);
 		final Map<String, String> jobMap = ImmutableMap.of("href", "http://jobnurl:4440", "name", "jobname");
 
@@ -561,7 +561,7 @@ public class SlackPluginTest {
 	@Test
 	public void testGetTitlePartAbortedByNoneWithGroup() throws Exception {
 
-		final Map<String, String> jobContextMap = ImmutableMap.of("serverUrl", "http://serverurl:4440");
+		final Map<String, String> jobContextMap = ImmutableMap.of("serverUrl", "http://serverurl:4440/");
 		final Map<String, Map<String, String>> contextMap = ImmutableMap.of("job", jobContextMap);
 		final Map<String, String> jobMap = ImmutableMap.of("href", "http://jobnurl:4440", "name", "jobname", "group", "groupName/subGroupName/subSubGroupName");
 
@@ -583,7 +583,7 @@ public class SlackPluginTest {
 	@Test
 	public void testGetTitlePartAbortedWithGroup() throws Exception {
 
-		final Map<String, String> jobContextMap = ImmutableMap.of("serverUrl", "http://serverurl:4440");
+		final Map<String, String> jobContextMap = ImmutableMap.of("serverUrl", "http://serverurl:4440/");
 		final Map<String, Map<String, String>> contextMap = ImmutableMap.of("job", jobContextMap);
 		final Map<String, String> jobMap = ImmutableMap.of("href", "http://jobnurl:4440", "name", "jobname", "group", "groupName/subGroupName/subSubGroupName");
 

@@ -1,2 +1,2 @@
 
-<http://serverurl:4440/projectName/execution/downloadOutput/executionId|Download log ouput>, job options:
+<http://serverurl:4440/project/projectName/execution/downloadOutput/executionId|Download log ouput>, job options:

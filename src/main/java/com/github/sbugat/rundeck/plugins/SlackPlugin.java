@@ -213,7 +213,7 @@ public class SlackPlugin implements NotificationPlugin {
 		// Download link if the job fails
 		boolean download = false;
 		if (!"running".equals(executionData.get("status")) && !"success".equals(executionData.get("status"))) {
-			downloadOptionBuilder.append("\n<" + jobContextMap.get("serverUrl") + "/" + executionData.get("project") + "/execution/downloadOutput/" + executionData.get("id") + "|Download log ouput>");
+			downloadOptionBuilder.append("\n<" + jobContextMap.get("serverUrl") + "project/" + executionData.get("project") + "/execution/downloadOutput/" + executionData.get("id") + "|Download log ouput>");
 			download = true;
 		}
 
@@ -311,7 +311,7 @@ public class SlackPlugin implements NotificationPlugin {
 		titleBuilder.append(jobMap.get("name"));
 		titleBuilder.append("> - <");
 		titleBuilder.append(jobContextMap.get("serverUrl"));
-		titleBuilder.append('/');
+		titleBuilder.append("project/");
 		titleBuilder.append(executionData.get("project"));
 		titleBuilder.append("/jobs");
 		titleBuilder.append('|');
@@ -328,7 +328,7 @@ public class SlackPlugin implements NotificationPlugin {
 
 				titleBuilder.append('<');
 				titleBuilder.append(jobContextMap.get("serverUrl"));
-				titleBuilder.append('/');
+				titleBuilder.append("project/");
 				titleBuilder.append(executionData.get("project"));
 				titleBuilder.append("/jobs");
 				titleBuilder.append(rootGroups);

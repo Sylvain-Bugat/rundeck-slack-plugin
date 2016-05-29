@@ -1,1 +1,1 @@
-<http://executionnurl:4440|#idExecution66 - RUNNING - jobname> - <http://serverurl:4440/projectName/jobs|projectName> - <http://jobnurl:4440|jobname>
+<http://executionnurl:4440|#idExecution66 - RUNNING - jobname> - <http://serverurl:4440/project/projectName/jobs|projectName> - <http://jobnurl:4440|jobname>
