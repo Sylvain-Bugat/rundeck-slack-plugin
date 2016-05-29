@@ -30,17 +30,10 @@
 
 	<!-- Specific rules -->
 	<rules>
-		<!-- Ignore assertj 1.7.*, 2.* and 3.* compatible only with Java 7 and 8 -->
+		<!-- Ignore assertj 3.* compatible only with Java 7 and 8 -->
 		<rule groupId="org.assertj">
 			<ignoreVersions>
-				<ignoreVersion type="regex">^1\.7\..*</ignoreVersion>
-				<ignoreVersion type="regex">^[23]\..*</ignoreVersion>
-			</ignoreVersions>
-		</rule>
-		<!-- Ignore Rundeck 2.5.* compatible only with Java 7 -->
-		<rule groupId="org.rundeck">
-			<ignoreVersions>
-				<ignoreVersion type="regex">^2\.5\..*</ignoreVersion>
+				<ignoreVersion type="regex">^3\..*</ignoreVersion>
 			</ignoreVersions>
 		</rule>
 		<!-- Ignore commons-logging 99.0-does-not-exist version -->
