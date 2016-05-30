@@ -77,7 +77,7 @@
 		<jaxen.version>1.1.6</jaxen.version>
 		<xerces.version>2.11.0</xerces.version>
 		<xml-apis.version>1.4.01</xml-apis.version>
-		<jackson.version>2.5.5</jackson.version>
+		<jackson.version>2.7.4</jackson.version>
 
 		<!-- Tests -->
 		<junit.version>4.12</junit.version>
